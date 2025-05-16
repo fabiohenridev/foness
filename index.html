@@ -195,7 +195,9 @@
 
         // Função para escapar HTML e prevenir XSS
         function escapeHTML(str) {
-            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         }
 
         // Função para o botão Comprar Agora
@@ -228,31 +230,57 @@
                     },
                     body: JSON.stringify({ name, email, message }),
                 });
-                const result = await response.json();
-                if (response.ok) {
-                    alert(result.message);
-                    document.getElementById('name').value = '';
-                    document.getElementById('email').value = '';
-                    document.getElementById('message').value = '';
-                } else {
-                    alert(result.error || 'Erro ao enviar a mensagem');
+
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
                 }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Resposta não é JSON');
+                }
+
+                const result = await response.json();
+                alert(result.message);
+                document.getElementById('name').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('message').value = '';
             } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao enviar a mensagem. Tente novamente.');
+                console.error('Erro ao enviar contato:', error);
+                alert('Erro ao enviar a mensagem. Verifique se o servidor está ativo ou tente novamente mais tarde.');
             }
         });
 
         // Função para carregar comentários
         async function loadComments() {
+            const commentsList = document.getElementById('commentsList');
+            commentsList.innerHTML = '<p class="text-gray-300 text-center">Carregando comentários...</p>';
+
             try {
-                const response = await fetch(`${API_BASE_URL}/api/comments`);
+                const response = await fetch(`${API_BASE_URL}/api/comments`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Resposta não é JSON');
+                }
+
                 const comments = await response.json();
-                const commentsList = document.getElementById('commentsList');
                 commentsList.innerHTML = '';
+
                 if (comments.length === 0) {
                     commentsList.innerHTML = '<p class="text-gray-300 text-center">Nenhum comentário ainda. Seja o primeiro!</p>';
+                    return;
                 }
+
                 comments.forEach(comment => {
                     const commentCard = document.createElement('div');
                     commentCard.className = 'bg-black p-6 rounded-lg shadow-lg comment-card';
@@ -265,7 +293,7 @@
                 });
             } catch (error) {
                 console.error('Erro ao carregar comentários:', error);
-                document.getElementById('commentsList').innerHTML = '<p class="text-red-500 text-center">Erro ao carregar comentários. Tente novamente mais tarde.</p>';
+                commentsList.innerHTML = '<p class="text-red-500 text-center">Erro ao carregar comentários. Verifique se o servidor está ativo ou tente novamente mais tarde.</p>';
             }
         }
 
@@ -284,21 +312,28 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                     },
                     body: JSON.stringify({ name, message }),
                 });
-                const result = await response.json();
-                if (response.ok) {
-                    alert(result.message);
-                    document.getElementById('commentName').value = '';
-                    document.getElementById('commentMessage').value = '';
-                    loadComments(); // Recarrega os comentários
-                } else {
-                    alert(result.error || 'Erro ao enviar o comentário');
+
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
                 }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Resposta não é JSON');
+                }
+
+                const result = await response.json();
+                alert(result.message);
+                document.getElementById('commentName').value = '';
+                document.getElementById('commentMessage').value = '';
+                await loadComments(); // Recarrega os comentários
             } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao enviar o comentário. Tente novamente.');
+                console.error('Erro ao enviar comentário:', error);
+                alert('Erro ao enviar o comentário. Verifique se o servidor está ativo ou tente novamente mais tarde.');
             }
         });
 
