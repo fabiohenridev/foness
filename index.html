@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -155,6 +154,8 @@
                 <div class="space-y-4">
                     <label for="commentName" class="sr-only">Seu Nome</label>
                     <input type="text" id="commentName" placeholder="Seu Nome" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-white">
+                    <label for="commentEmail" class="sr-only">Seu Email</label>
+                    <input type="email" id="commentEmail" placeholder="Seu Email" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-white">
                     <label for="commentMessage" class="sr-only">Seu Comentário</label>
                     <textarea id="commentMessage" placeholder="Seu Comentário" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-white" rows="4"></textarea>
                     <button id="submitComment" class="w-full btn-red text-white px-6 py-3 rounded-lg text-lg font-semibold" aria-label="Enviar Comentário">Enviar Comentário</button>
@@ -237,10 +238,18 @@
         // Função para enviar comentário
         document.getElementById('submitComment').addEventListener('click', async () => {
             const name = document.getElementById('commentName').value.trim();
+            const email = document.getElementById('commentEmail').value.trim();
             const message = document.getElementById('commentMessage').value.trim();
 
-            if (!name || !message) {
-                alert('Por favor, preencha todos os campos.');
+            if (!name || !email || !message) {
+                alert('Por favor, preencha todos os campos (nome, email e comentário).');
+                return;
+            }
+
+            // Validação básica de email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Por favor, insira um email válido.');
                 return;
             }
 
@@ -251,7 +260,7 @@
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
                     },
-                    body: JSON.stringify({ name, message }),
+                    body: JSON.stringify({ name, email, message }),
                 });
 
                 if (!response.ok) {
@@ -266,6 +275,7 @@
                 const result = await response.json();
                 alert(result.message);
                 document.getElementById('commentName').value = '';
+                document.getElementById('commentEmail').value = '';
                 document.getElementById('commentMessage').value = '';
                 await loadComments(); // Recarrega os comentários
             } catch (error) {
