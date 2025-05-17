@@ -47,12 +47,34 @@
             box-shadow: 0 8px 20px rgba(230, 57, 70, 0.3);
         }
         .comment-card {
+            display: flex;
+            align-items: flex-start;
             transition: transform 0.2s ease, box-shadow 0.3s ease;
             background-color: #2a2a2a;
+            padding: 1.5rem;
+            border-radius: 8px;
         }
         .comment-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 6px 15px rgba(230, 57, 70, 0.3);
+        }
+        .comment-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin-right: 1rem;
+            object-fit: cover;
+            border: 2px solid #e63946;
+        }
+        .comment-content {
+            flex: 1;
+        }
+        .comment-content p {
+            margin: 0;
+        }
+        .comment-date {
+            font-size: 0.875rem;
+            color: #6b7280;
         }
         /* Gradient transitions between sections */
         section, header, footer {
@@ -251,7 +273,7 @@
             <!-- Especificações Técnicas -->
             <div class="mt-12 p-8 rounded-lg" style="background-color: #2a2a2a;">
                 <h3 class="text-2xl md:text-3xl font-bold text-white section-title">Especificações Técnicas</h3>
-                <ul class="mt-6 text-gray-400 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ul class="mt-6 text-gray-400 grid grid-cols-1 md(grid-cols-2 gap-4">
                     <li><strong>Faixa de Resposta de Frequência:</strong> 20-20000 Hz</li>
                     <li><strong>Impedância:</strong> 16 Ω</li>
                     <li><strong>Sensibilidade:</strong> 109 dB</li>
@@ -394,10 +416,11 @@
             return div.innerHTML;
         }
 
-        // Função para o botão Comprar Agora
-        document.getElementById('buyNow').addEventListener('click', () => {
-            window.location.href = "https://wa.me/5584991562754?text=ol%C3%A1%2C%20estou%20interessado%20(a)%20e%20gostaria%20de%20comprar%20o%20fone%20gamer%20%F0%9F%98%83%F0%9F%98%83";
-        });
+        // Função para gerar URL do avatar usando DiceBear
+        function getAvatarUrl(name) {
+            const seed = encodeURIComponent(name || 'unknown');
+            return `https://api.dicebear.com/9.x/initials/svg?seed=${seed}&backgroundColor=e63946&fontSize=40`;
+        }
 
         // Função para adicionar um novo comentário ao DOM
         function addCommentToDOM(comment) {
@@ -409,9 +432,12 @@
             const commentCard = document.createElement('div');
             commentCard.className = 'comment-card p-6 rounded-lg shadow-lg';
             commentCard.innerHTML = `
-                <p class="text-gray-400">${escapeHTML(comment.message)}</p>
-                <p class="mt-4 font-bold text-white">- ${escapeHTML(comment.name)}</p>
-                <p class="text-sm text-gray-600">${new Date(comment.createdAt).toLocaleDateString('pt-BR')}</p>
+                <img src="${getAvatarUrl(comment.name)}" alt="Avatar de ${escapeHTML(comment.name)}" class="comment-avatar">
+                <div class="comment-content">
+                    <p class="text-gray-400">${escapeHTML(comment.message)}</p>
+                    <p class="mt-2 font-bold text-white">- ${escapeHTML(comment.name)}</p>
+                    <p class="comment-date">${new Date(comment.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
+                </div>
             `;
             commentsList.insertBefore(commentCard, commentsList.firstChild);
         }
@@ -446,12 +472,19 @@
                     return;
                 }
 
+                // Ordenar comentários por data decrescente (mais recentes primeiro)
+                comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 comments.forEach(comment => addCommentToDOM(comment));
             } catch (error) {
                 console.error('Erro ao carregar comentários:', error);
                 commentsList.innerHTML = '<p class="text-red-600 text-center">Erro ao carregar comentários. Verifique se o servidor está ativo ou tente novamente mais tarde.</p>';
             }
         }
+
+        // Função para o botão Comprar Agora
+        document.getElementById('buyNow').addEventListener('click', () => {
+            window.location.href = "https://wa.me/5584991562754?text=ol%C3%A1%2C%20estou%20interessado%20(a)%20e%20gostaria%20de%20comprar%20o%20fone%20gamer%20%F0%9F%98%83%F0%9F%98%83";
+        });
 
         // Função para enviar comentário
         document.getElementById('submitComment').addEventListener('click', async () => {
