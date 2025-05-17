@@ -7,22 +7,27 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background-color: #1a1a1a;
-            color: #ffffff;
+            background-color: #1f1f1f;
+            color: #e5e5e5;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
         }
         .btn-red {
             background-color: #e63946;
             transform: translateY(0);
-            transition: transform 0.2s ease, background-color 0.3s ease;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(230, 57, 70, 0.4);
         }
         .btn-red:hover {
-            background-color: #d00000;
+            background-color: #b91c1c;
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(230, 57, 70, 0.6);
         }
         .section-title {
             position: relative;
             display: inline-block;
             margin-bottom: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
         .section-title::after {
             content: '';
@@ -35,31 +40,91 @@
             background-color: #e63946;
         }
         img {
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         img:hover {
             transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(230, 57, 70, 0.3);
         }
         .comment-card {
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            background-color: #2a2a2a;
         }
         .comment-card:hover {
             transform: translateY(-4px);
+            box-shadow: 0 6px 15px rgba(230, 57, 70, 0.3);
+        }
+        /* Gradient transitions between sections */
+        section, header, footer {
+            position: relative;
+            z-index: 1;
+        }
+        section::before, header::before, footer::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            z-index: -1;
+        }
+        section::after, header::after, footer::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            z-index: -1;
+        }
+        header::before {
+            background: linear-gradient(to bottom, transparent, #1f1f1f);
+        }
+        header::after {
+            background: linear-gradient(to bottom, #1f1f1f, #2a2a2a);
+        }
+        section:nth-of-type(1)::before {
+            background: linear-gradient(to bottom, #2a2a2a, #1f1f1f);
+        }
+        section:nth-of-type(1)::after {
+            background: linear-gradient(to bottom, #1f1f1f, #2a2a2a);
+        }
+        section:nth-of-type(2)::before {
+            background: linear-gradient(to bottom, #2a2a2a, #1f1f1f);
+        }
+        section:nth-of-type(2)::after {
+            background: linear-gradient(to bottom, #1f1f1f, #2a2a2a);
+        }
+        section:nth-of-type(3)::before {
+            background: linear-gradient(to bottom, #2a2a2a, #1f1f1f);
+        }
+        section:nth-of-type(3)::after {
+            background: linear-gradient(to bottom, #1f1f1f, #2a2a2a);
+        }
+        footer::before {
+            background: linear-gradient(to bottom, #2a2a2a, #1f1f1f);
+        }
+        input, textarea {
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        input:focus, textarea:focus {
+            box-shadow: 0 0 10px rgba(230, 57, 70, 0.4);
+            border-color: #e63946;
         }
     </style>
     <link rel="icon" href="fone-venda.webp" type="image/x-icon">
 </head>
 <body class="font-sans">
     <!-- Cabeçalho -->
-    <header class="bg-black text-white py-6">
+    <header class="text-white py-6" style="background-color: #1f1f1f;">
         <div class="container mx-auto text-center">
             <h1 class="text-4xl md:text-5xl font-bold">Fones de Ouvido Gamer Pro</h1>
-            <p class="mt-3 text-lg md:text-xl text-gray-300">Domine o jogo com som imersivo e conforto imbatível!</p>
+            <p class="mt-3 text-lg md:text-xl text-gray-400">Domine o jogo com som imersivo e conforto imbatível!</p>
         </div>
     </header>
 
     <!-- Seção do Produto -->
-    <section class="py-16">
+    <section class="py-16" style="background-color: #1f1f1f;">
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row items-center">
                 <div class="md:w-1/2">
@@ -67,30 +132,30 @@
                 </div>
                 <div class="md:w-1/2 mt-8 md:mt-0 md:pl-10">
                     <h2 class="text-3xl md:text-4xl font-bold text-white section-title">Eleve Sua Experiência de Jogo ao Máximo</h2>
-                    <p class="mt-4 text-gray-300 leading-relaxed">
+                    <p class="mt-4 text-gray-400 leading-relaxed">
                         Os <strong>Fones de Ouvido Gamer Pro</strong> são sua arma secreta para vencer qualquer batalha. Com som estéreo 7.1, você ouve cada passo do inimigo e sente a emoção de cada explosão. Não é apenas um fone de ouvido — é a diferença entre jogar e dominar.
                     </p>
-                    <ul class="mt-6 space-y-3 text-gray-300">
+                    <ul class="mt-6 space-y-3 text-gray-400">
                         <li class="flex items-center">
-                            <svg class="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                             <strong>Som Estéreo 7.1 Imersivo:</strong> Identifique a direção dos inimigos com precisão.
                         </li>
                         <li class="flex items-center">
-                            <svg class="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                             <strong>Redução de Ruído Tripla:</strong> Microfone destacável com som cristalino, sem interferências.
                         </li>
                         <li class="flex items-center">
-                            <svg class="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                             <strong>Conforto Sem Igual:</strong> Design intra-auricular com silicone que não cai, mesmo em longas sessões.
                         </li>
                         <li class="flex items-center">
-                            <svg class="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                             <strong>Plugue em L:</strong> Jogue sem obstáculos, com liberdade total de movimento.
@@ -99,9 +164,9 @@
                 </div>
             </div>
             <!-- Especificações Técnicas -->
-            <div class="mt-12 bg-gray-900 p-8 rounded-lg">
+            <div class="mt-12 p-8 rounded-lg" style="background-color: #2a2a2a;">
                 <h3 class="text-2xl md:text-3xl font-bold text-white section-title">Especificações Técnicas</h3>
-                <ul class="mt-6 text-gray-300 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ul class="mt-6 text-gray-400 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <li><strong>Faixa de Resposta de Frequência:</strong> 20-20000 Hz</li>
                     <li><strong>Impedância:</strong> 16 Ω</li>
                     <li><strong>Sensibilidade:</strong> 109 dB</li>
@@ -116,7 +181,7 @@
                     <li><strong>Inclui:</strong> 1 Fone de Ouvido, 1 Manual</li>
                 </ul>
             </div>
-            <p class="mt-6 text-lg text-red-500 font-bold">Por apenas R$59,99, transforme sua experiência de jogo HOJE!</p>
+            <p class="mt-6 text-lg text-red-600 font-bold">Por apenas R$59,99, transforme sua experiência de jogo HOJE!</p>
             <!-- Botão Comprar Agora -->
             <div class="mt-8 text-center">
                 <button id="buyNow" class="btn-red text-white px-8 py-4 rounded-lg text-lg font-semibold shadow-lg" aria-label="Comprar Agora">Comprar Agora!</button>
@@ -125,20 +190,20 @@
     </section>
 
     <!-- Seção de Depoimentos -->
-    <section class="bg-gray-900 py-16">
+    <section class="py-16" style="background-color: #1f1f1f;">
         <div class="container mx-auto px-4">
             <h2 class="text-3xl md:text-4xl font-bold text-center text-white section-title">O que os Gamers Estão Dizendo</h2>
             <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-black p-6 rounded-lg shadow-lg">
-                    <p class="text-gray-300">"O som é tão claro que ouvi o inimigo antes de vê-lo! Esses fones mudaram meu jogo."</p>
+                <div class="comment-card p-6 rounded-lg shadow-lg">
+                    <p class="text-gray-400">"O som é tão claro que ouvi o inimigo antes de vê-lo! Esses fones mudaram meu jogo."</p>
                     <p class="mt-4 font-bold text-white">- João Silva</p>
                 </div>
-                <div class="bg-black p-6 rounded-lg shadow-lg">
-                    <p class="text-gray-300">"Confortáveis por horas e o microfone é perfeito para estratégias em equipe."</p>
+                <div class="comment-card p-6 rounded-lg shadow-lg">
+                    <p class="text-gray-400">"Confortáveis por horas e o microfone é perfeito para estratégias em equipe."</p>
                     <p class="mt-4 font-bold text-white">- Maria Oliveira</p>
                 </div>
-                <div class="bg-black p-6 rounded-lg shadow-lg">
-                    <p class="text-gray-300">"Melhor custo-benefício que já vi. Não jogo mais sem eles!"</p>
+                <div class="comment-card p-6 rounded-lg shadow-lg">
+                    <p class="text-gray-四大百">"Melhor custo-benefício que já vi. Não jogo mais sem eles!"</p>
                     <p class="mt-4 font-bold text-white">- Pedro Santos</p>
                 </div>
             </div>
@@ -146,18 +211,18 @@
     </section>
 
     <!-- Seção de Comentários -->
-    <section class="py-16 bg-gray-900">
+    <section class="py-16" style="background-color: #1f1f1f;">
         <div class="container mx-auto px-4">
             <h2 class="text-3xl md:text-4xl font-bold text-center text-white section-title">Deixe Seu Comentário</h2>
-            <p class="mt-3 text-center text-gray-300">Compartilhe sua experiência com os Fones de Ouvido Gamer Pro!</p>
+            <p class="mt-3 text-center text-gray-400">Compartilhe sua experiência com os Fones de Ouvido Gamer Pro!</p>
             <div class="mt-10 max-w-md mx-auto">
                 <div class="space-y-4">
                     <label for="commentName" class="sr-only">Seu Nome</label>
-                    <input type="text" id="commentName" placeholder="Seu Nome" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-white">
+                    <input type="text" id="commentName" placeholder="Seu Nome" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white">
                     <label for="commentEmail" class="sr-only">Seu Email</label>
-                    <input type="email" id="commentEmail" placeholder="Seu Email" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-white">
+                    <input type="email" id="commentEmail" placeholder="Seu Email" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white">
                     <label for="commentMessage" class="sr-only">Seu Comentário</label>
-                    <textarea id="commentMessage" placeholder="Seu Comentário" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-white" rows="4"></textarea>
+                    <textarea id="commentMessage" placeholder="Seu Comentário" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" rows="4"></textarea>
                     <button id="submitComment" class="w-full btn-red text-white px-6 py-3 rounded-lg text-lg font-semibold" aria-label="Enviar Comentário">Enviar Comentário</button>
                 </div>
             </div>
@@ -166,10 +231,10 @@
     </section>
 
     <!-- Rodapé -->
-    <footer class="bg-black text-white py-6">
+    <footer class="text-white py-6" style="background-color: #1f1f1f;">
         <div class="container mx-auto text-center">
             <p>© 2025 Fones de Ouvido Gamer Pro. Todos os direitos reservados.</p>
-            <p class="mt-2 text-sm text-gray-300">Envio em até 24h em dias úteis | Suporte dedicado</p>
+            <p class="mt-2 text-sm text-gray-400">Envio em até 24h em dias úteis | Suporte dedicado</p>
         </div>
     </footer>
 
@@ -195,16 +260,16 @@
         // Função para adicionar um novo comentário ao DOM
         function addCommentToDOM(comment) {
             const commentsList = document.getElementById('commentsList');
-            const noComments = commentsList.querySelector('p.text-gray-300.text-center');
+            const noComments = commentsList.querySelector('p.text-gray-400.text-center');
             if (noComments) {
                 commentsList.innerHTML = '';
             }
             const commentCard = document.createElement('div');
-            commentCard.className = 'bg-black p-6 rounded-lg shadow-lg comment-card';
+            commentCard.className = 'comment-card p-6 rounded-lg shadow-lg';
             commentCard.innerHTML = `
-                <p class="text-gray-300">${escapeHTML(comment.message)}</p>
+                <p class="text-gray-400">${escapeHTML(comment.message)}</p>
                 <p class="mt-4 font-bold text-white">- ${escapeHTML(comment.name)}</p>
-                <p class="text-sm text-gray-500">${new Date(comment.createdAt).toLocaleDateString('pt-BR')}</p>
+                <p class="text-sm text-gray-600">${new Date(comment.createdAt).toLocaleDateString('pt-BR')}</p>
             `;
             commentsList.insertBefore(commentCard, commentsList.firstChild); // Adiciona no topo
         }
@@ -212,7 +277,7 @@
         // Função para carregar comentários iniciais
         async function loadComments() {
             const commentsList = document.getElementById('commentsList');
-            commentsList.innerHTML = '<p class="text-gray-300 text-center">Carregando comentários...</p>';
+            commentsList.innerHTML = '<p class="text-gray-400 text-center">Carregando comentários...</p>';
 
             try {
                 const response = await fetch(`${API_BASE_URL}/api/comments`, {
@@ -235,14 +300,14 @@
                 commentsList.innerHTML = '';
 
                 if (comments.length === 0) {
-                    commentsList.innerHTML = '<p class="text-gray-300 text-center">Nenhum comentário ainda. Seja o primeiro!</p>';
+                    commentsList.innerHTML = '<p class="text-gray-400 text-center">Nenhum comentário ainda. Seja o primeiro!</p>';
                     return;
                 }
 
                 comments.forEach(comment => addCommentToDOM(comment));
             } catch (error) {
                 console.error('Erro ao carregar comentários:', error);
-                commentsList.innerHTML = '<p class="text-red-500 text-center">Erro ao carregar comentários. Verifique se o servidor está ativo ou tente novamente mais tarde.</p>';
+                commentsList.innerHTML = '<p class="text-red-600 text-center">Erro ao carregar comentários. Verifique se o servidor está ativo ou tente novamente mais tarde.</p>';
             }
         }
 
