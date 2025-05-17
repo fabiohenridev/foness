@@ -192,8 +192,11 @@
         </div>
     </footer>
 
+    <!-- Socket.IO Client -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     <script>
         const API_BASE_URL = 'https://backend-fone.onrender.com';
+        const socket = io(API_BASE_URL);
 
         // Função para escapar HTML e prevenir XSS
         function escapeHTML(str) {
@@ -208,7 +211,24 @@
             // Aqui você pode adicionar o redirecionamento para o checkout
         });
 
-        // Função para carregar comentários
+        // Função para adicionar um novo comentário ao DOM
+        function addCommentToDOM(comment) {
+            const commentsList = document.getElementById('commentsList');
+            const noComments = commentsList.querySelector('p.text-gray-300.text-center');
+            if (noComments) {
+                commentsList.innerHTML = '';
+            }
+            const commentCard = document.createElement('div');
+            commentCard.className = 'bg-black p-6 rounded-lg shadow-lg comment-card';
+            commentCard.innerHTML = `
+                <p class="text-gray-300">${escapeHTML(comment.message)}</p>
+                <p class="mt-4 font-bold text-white">- ${escapeHTML(comment.name)}</p>
+                <p class="text-sm text-gray-500">${new Date(comment.createdAt).toLocaleDateString('pt-BR')}</p>
+            `;
+            commentsList.insertBefore(commentCard, commentsList.firstChild); // Adiciona no topo
+        }
+
+        // Função para carregar comentários iniciais
         async function loadComments() {
             const commentsList = document.getElementById('commentsList');
             commentsList.innerHTML = '<p class="text-gray-300 text-center">Carregando comentários...</p>';
@@ -238,16 +258,7 @@
                     return;
                 }
 
-                comments.forEach(comment => {
-                    const commentCard = document.createElement('div');
-                    commentCard.className = 'bg-black p-6 rounded-lg shadow-lg comment-card';
-                    commentCard.innerHTML = `
-                        <p class="text-gray-300">${escapeHTML(comment.message)}</p>
-                        <p class="mt-4 font-bold text-white">- ${escapeHTML(comment.name)}</p>
-                        <p class="text-sm text-gray-500">${new Date(comment.createdAt).toLocaleDateString('pt-BR')}</p>
-                    `;
-                    commentsList.appendChild(commentCard);
-                });
+                comments.forEach(comment => addCommentToDOM(comment));
             } catch (error) {
                 console.error('Erro ao carregar comentários:', error);
                 commentsList.innerHTML = '<p class="text-red-500 text-center">Erro ao carregar comentários. Verifique se o servidor está ativo ou tente novamente mais tarde.</p>';
@@ -348,7 +359,7 @@
                 document.getElementById('commentName').value = '';
                 document.getElementById('commentEmail').value = '';
                 document.getElementById('commentMessage').value = '';
-                await loadComments();
+                // O comentário será adicionado via Socket.IO, não precisa recarregar
             } catch (error) {
                 console.error('Erro ao enviar comentário:', error);
                 if (error.message.includes('Erro de validação')) {
@@ -357,6 +368,26 @@
                     alert(`Erro ao enviar o comentário: ${error.message}. Verifique se o servidor está ativo ou tente novamente mais tarde.`);
                 }
             }
+        });
+
+        // Socket.IO: Escutar novos comentários em tempo real
+        socket.on('newComment', (comment) => {
+            addCommentToDOM(comment);
+        });
+
+        // Socket.IO: Escutar novos contatos em tempo real (feedback opcional)
+        socket.on('newContact', (contact) => {
+            console.log('Novo contato recebido:', contact);
+            // Opcional: Mostrar uma notificação ou feedback ao usuário
+        });
+
+        // Socket.IO: Manipular conexão
+        socket.on('connect', () => {
+            console.log('Conectado ao servidor WebSocket');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Desconectado do servidor WebSocket');
         });
 
         // Carregar comentários ao iniciar a página
