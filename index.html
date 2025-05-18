@@ -216,23 +216,6 @@
         .reply-form.active {
             display: block;
         }
-        .replies-container {
-            display: none;
-            margin-top: 1rem;
-        }
-        .replies-container.active {
-            display: block;
-        }
-        .view-replies-btn {
-            color: #e63946;
-            cursor: pointer;
-            margin-top: 0.5rem;
-            font-size: 0.875rem;
-            text-decoration: underline;
-        }
-        .view-replies-btn:hover {
-            color: #b91c1c;
-        }
         @media (min-width: 768px) {
             #commentsList {
                 flex-direction: row;
@@ -591,15 +574,6 @@
                 </div>
             `;
             repliesContainer.appendChild(replyCard);
-
-            // Atualizar o texto do botão "Ver Respostas" com o número atualizado de respostas
-            const viewRepliesBtn = commentCard.querySelector('.view-replies-btn');
-            if (viewRepliesBtn) {
-                const repliesCount = repliesContainer.children.length;
-                viewRepliesBtn.textContent = repliesContainer.classList.contains('active') 
-                    ? `Esconder Respostas (${repliesCount})` 
-                    : `Ver Respostas ao Comentário (${repliesCount})`;
-            }
         }
 
         // Adicionar comentário ao DOM
@@ -616,13 +590,6 @@
             commentCard.className = 'comment-card';
             commentCard.setAttribute('role', 'listitem');
             commentCard.setAttribute('data-comment-id', comment._id);
-
-            // Adicionar botão "Ver Respostas" se houver respostas
-            let viewRepliesBtn = '';
-            if (comment.replies && comment.replies.length > 0) {
-                viewRepliesBtn = `<button class="view-replies-btn" aria-label="Ver Respostas ao Comentário de ${escapeHTML(comment.name)}">Ver Respostas ao Comentário (${comment.replies.length})</button>`;
-            }
-
             commentCard.innerHTML = `
                 <img src="${getAvatarUrl(comment.name, comment.email)}" alt="Avatar de ${escapeHTML(comment.name)}" class="comment-avatar">
                 <div class="comment-content">
@@ -630,7 +597,6 @@
                     <p class="mt-2 font-bold text-white">- ${escapeHTML(comment.name)}</p>
                     <p class="comment-date">${new Date(comment.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                     <button class="reply-btn text-red-600 mt-2" aria-label="Responder ao comentário de ${escapeHTML(comment.name)}">Responder</button>
-                    ${viewRepliesBtn}
                     <form class="reply-form space-y-4" data-parent-id="${comment._id}">
                         <label for="replyName-${comment._id}" class="sr-only">Seu Nome</label>
                         <input type="text" id="replyName-${comment._id}" placeholder="Seu Nome" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" required>
@@ -644,8 +610,8 @@
             `;
             commentsList.prepend(commentCard);
 
-            // Renderizar respostas existentes, inicialmente escondidas
-            if (comment.replies && comment.replies.length) {
+            // Renderizar respostas existentes
+            if (comment.replies?.length) {
                 const repliesContainer = document.createElement('div');
                 repliesContainer.className = 'replies-container';
                 comment.replies.forEach(reply => addReplyToDOM(reply, comment._id));
@@ -658,21 +624,6 @@
                 replyBtn.addEventListener('click', () => {
                     const replyForm = commentCard.querySelector('.reply-form');
                     if (replyForm) replyForm.classList.toggle('active');
-                });
-            }
-
-            // Toggle visibilidade das respostas
-            const viewRepliesBtnElement = commentCard.querySelector('.view-replies-btn');
-            if (viewRepliesBtnElement) {
-                viewRepliesBtnElement.addEventListener('click', () => {
-                    const repliesContainer = commentCard.querySelector('.replies-container');
-                    if (repliesContainer) {
-                        repliesContainer.classList.toggle('active');
-                        const repliesCount = repliesContainer.children.length;
-                        viewRepliesBtnElement.textContent = repliesContainer.classList.contains('active') 
-                            ? `Esconder Respostas (${repliesCount})` 
-                            : `Ver Respostas ao Comentário (${repliesCount})`;
-                    }
                 });
             }
 
