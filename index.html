@@ -154,11 +154,6 @@
             width: 100%;
             height: auto;
             object-fit: cover;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .carousel-img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(230, 57, 70, 0.3);
         }
         .carousel-btn {
             position: absolute;
@@ -235,7 +230,7 @@
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row items-center">
                 <div class="md:w-1/2">
-                    <div class="carousel-container">
+                    <div class="carousel-container" role="region" aria-label="Carrossel de imagens do produto">
                         <div class="carousel" id="carousel">
                             <div class="carousel-item">
                                 <img src="fone-venda.webp" alt="Fones de Ouvido - Imagem 1" class="carousel-img rounded-lg shadow-lg w-full" onerror="this.src='https://via.placeholder.com/600x400?text=Imagem+1'">
@@ -262,26 +257,15 @@
                                 <img src="fone-venda-8.webp" alt="Fones de Ouvido - Imagem 8" class="carousel-img rounded-lg shadow-lg w-full" onerror="this.src='https://via.placeholder.com/600x400?text=Imagem+8'">
                             </div>
                         </div>
-                        <button class="carousel-btn prev-btn" aria-label="Imagem Anterior">❮</button>
-                        <button class="carousel-btn next-btn" aria-label="Próxima Imagem">❯</button>
-                        <div class="carousel-dots" id="carousel-dots"></div>
+                        <button class="carousel-btn prev-btn" aria-label="Imagem anterior">&#10094;</button>
+                        <button class="carousel-btn next-btn" aria-label="Próxima imagem">&#10095;</button>
+                        <div class="carousel-dots" id="carousel-dots" role="tablist"></div>
                     </div>
                 </div>
-                <div class="md:w-1/2 mt-8 md:mt-0 md:pl-10">
-                    <h2 class="text-3xl md:text-4xl font-bold text-white section-title">Eleve Sua Experiência de Jogo ao Máximo</h2>
-                    <p class="mt-4 text-gray-400 leading-relaxed">
-                        Se você clicou aqui, está a um passo de adquirir o <strong>Headset Gamer Pro</strong>, o equipamento que vai transformar seus jogos e te colocar no mesmo nível dos grandes players de <strong>Valorant, PUBG, CS, LoL, Dota</strong> e outros! Este não é apenas um headset — é a sua arma secreta para ouvir cada passo do inimigo, sentir cada explosão e se comunicar com sua equipe como um profissional.
-                    </p>
-                    <p class="mt-4 text-gray-400 leading-relaxed">
-                        Com <strong>som surround estéreo</strong>, você terá uma imersão absurda, captando cada detalhe sonoro do jogo. O microfone omnidirecional destacável garante uma comunicação cristalina, sem ruídos, ideal para estratégias em equipe. E o melhor? Este headset é tão versátil que você pode usá-lo para ouvir músicas com qualidade premium — basta desconectar o microfone e curtir!
-                    </p>
-                    <p class="mt-4 text-gray-400 leading-relaxed">
-                        Compatível com <strong>PC, notebooks, celulares de todas as marcas, PS4 e Xbox One</strong>, este headset é perfeito para qualquer setup. Seu design ergonômico e confortável permite horas de jogo sem desconforto, com almofadas macias que se adaptam perfeitamente. E sabe o que é mais incrível? Você leva essa qualidade de ponta por um preço que cabe no bolso, algo que headsets premium raramente oferecem.
-                    </p>
-                    <p class="mt-4 text-gray-400 leading-relaxed">
-                        <strong>Por que ficar no básico?</strong> Deixe de lado a jogatina amadora e invista no seu lazer. Você merece o melhor, e o Headset Gamer Pro entrega isso com um custo-benefício imbatível. <strong>Não perca essa chance!</strong> Clique agora e garanta o seu por apenas <strong>R$59,99</strong>!
-                    </p>
-                    <ul class="mt-6 space-y-3 text-gray-400">
+                <div class="md:w-1/2 md:pl-8 mt-8 md:mt-0">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white section-title">Por que escolher nossos fones?</h2>
+                    <p class="mt-4 text-gray-400">Os <strong>Fones de Ouvido Gamer Pro</strong> foram projetados para oferecer a melhor experiência em jogos, com qualidade de som excepcional, conforto prolongado e compatibilidade com várias plataformas.</p>
+                    <ul class="mt-6 space-y-4 text-gray-400">
                         <li class="flex items-center">
                             <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -330,11 +314,12 @@
             <p class="mt-6 text-lg text-red-600 font-bold">Por apenas R$59,99, transforme sua experiência de jogo HOJE!</p>
             <!-- Botão Comprar Agora -->
             <div class="mt-8 text-center">
-                <button id="buyNow" class="btn-red text-white px-8 py-4 rounded-lg text-lg font-semibold shadow-lg" 
-                        data-whatsapp="https://wa.me/5584991562754?text=ol%C3%A1,%20estou%20interessado%20pelo%20fone%20e%20gostaria%20de%20comprar%20!%F0%9F%98%83%F0%9F%98%83" 
-                        aria-label="Comprar Agora">
+                <a href="https://wa.me/5584991562754?text=ol%C3%A1,%20estou%20interessado%20pelo%20fone%20e%20gostaria%20de%20comprar%20!%F0%9F%98%83%F0%9F%98%83" 
+                   class="btn-red text-white px-8 py-4 rounded-lg text-lg font-semibold shadow-lg inline-block" 
+                   aria-label="Comprar pelo WhatsApp" 
+                   target="_blank">
                     Comprar pelo WhatsApp
-                </button>
+                </a>
             </div>
         </div>
     </section>
@@ -366,19 +351,19 @@
             <h2 class="text-3xl md:text-4xl font-bold text-center text-white section-title">Deixe Seu Comentário</h2>
             <p class="mt-3 text-center text-gray-400">Compartilhe sua experiência com os Fones de Ouvido Gamer Pro!</p>
             <div class="mt-10 max-w-md mx-auto">
-                <div class="space-y-4">
+                <form id="commentForm" class="space-y-4">
                     <label for="commentName" class="sr-only">Seu Nome</label>
-                    <input type="text" id="commentName" placeholder="Seu Nome" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white">
+                    <input type="text" id="commentName" placeholder="Seu Nome" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" required>
                     <label for="commentEmail" class="sr-only">Seu Email</label>
-                    <input type="email" id="commentEmail" placeholder="Seu Email" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white">
+                    <input type="email" id="commentEmail" placeholder="Seu Email" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" required>
                     <label for="commentMessage" class="sr-only">Seu Comentário</label>
-                    <textarea id="commentMessage" placeholder="Seu Comentário" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" rows="4"></textarea>
-                    <button id="submitComment" class="w-full btn-red text-white px-6 py-3 rounded-lg text-lg font-semibold" aria-label="Enviar Comentário">Enviar Comentário</button>
-                </div>
+                    <textarea id="commentMessage" placeholder="Seu Comentário" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" rows="4" required></textarea>
+                    <button type="submit" id="submitComment" class="w-full btn-red text-white px-6 py-3 rounded-lg text-lg font-semibold" aria-label="Enviar Comentário">Enviar Comentário</button>
+                </form>
             </div>
             <h3 class="mt-8 text-2xl font-bold text-center text-white">Comentários dos Usuários</h3>
-            <div id="connectionStatus" class="text-center text-gray-400"></div>
-            <div id="commentsList" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            <div id="connectionStatus" class="text-center text-gray-400" role="status"></div>
+            <div id="commentsList" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6" role="list"></div>
         </div>
     </section>
 
@@ -393,7 +378,7 @@
     <!-- Socket.IO Client -->
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     <script>
-        const API_BASE_URL = 'https://backend-fone.onrender.com';
+        const API_BASE_URL = 'https://backend-fone.onrender.com'; // Ajuste conforme o domínio do backend
         let socket;
 
         // Função para atualizar o status de conexão
@@ -417,7 +402,7 @@
             socket.on('connect', () => {
                 console.log('Conectado ao servidor WebSocket');
                 updateConnectionStatus('connected', 'Conectado ao servidor.');
-                loadComments(); // Recarregar comentários ao conectar
+                loadComments();
             });
 
             socket.on('disconnect', () => {
@@ -428,7 +413,7 @@
             socket.on('reconnect', (attempt) => {
                 console.log(`Reconectado ao servidor WebSocket após ${attempt} tentativas`);
                 updateConnectionStatus('connected', 'Reconectado ao servidor!');
-                loadComments(); // Recarregar comentários ao reconectar
+                loadComments();
             });
 
             socket.on('reconnect_attempt', () => {
@@ -462,15 +447,17 @@
         let currentIndex = 0;
 
         if (!carousel || !prevBtn || !nextBtn || !dotsContainer || items.length === 0) {
-            console.error('Carousel elements are missing or invalid');
+            console.error('Elementos do carrossel estão ausentes ou inválidos');
         } else {
             function createDots() {
                 dotsContainer.innerHTML = '';
                 items.forEach((_, index) => {
                     const dot = document.createElement('div');
                     dot.classList.add('carousel-dot');
-                    if (index === 0) dot.classList.add('active');
+                    dot.setAttribute('role', 'tab');
+                    dot.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
                     dot.setAttribute('aria-label', `Ir para a imagem ${index + 1}`);
+                    if (index === 0) dot.classList.add('active');
                     dot.addEventListener('click', () => goToSlide(index));
                     dotsContainer.appendChild(dot);
                 });
@@ -481,6 +468,7 @@
                 const dots = document.querySelectorAll('.carousel-dot');
                 dots.forEach((dot, index) => {
                     dot.classList.toggle('active', index === currentIndex);
+                    dot.setAttribute('aria-selected', index === currentIndex ? 'true' : 'false');
                 });
             }
 
@@ -532,6 +520,7 @@
             }
             const commentCard = document.createElement('div');
             commentCard.className = 'comment-card p-6 rounded-lg shadow-lg';
+            commentCard.setAttribute('role', 'listitem');
             commentCard.innerHTML = `
                 <img src="${getAvatarUrl(comment.name)}" alt="Avatar de ${escapeHTML(comment.name)}" class="comment-avatar">
                 <div class="comment-content">
@@ -586,19 +575,9 @@
             }
         }
 
-        // Função para o botão Comprar Agora
-        document.getElementById('buyNow').addEventListener('click', (e) => {
-            const whatsappLink = e.target.getAttribute('data-whatsapp');
-            if (whatsappLink) {
-                window.location.href = whatsappLink;
-            } else {
-                console.error('WhatsApp link not found');
-                alert('Erro ao abrir o WhatsApp. Tente novamente mais tarde.');
-            }
-        });
-
         // Função para enviar comentário
-        document.getElementById('submitComment').addEventListener('click', async () => {
+        document.getElementById('commentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
             const name = document.getElementById('commentName').value.trim();
             const email = document.getElementById('commentEmail').value.trim();
             const message = document.getElementById('commentMessage').value.trim();
