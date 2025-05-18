@@ -539,6 +539,11 @@
         // Função para adicionar um novo comentário ao DOM
         function addCommentToDOM(comment) {
             const commentsList = document.getElementById('commentsList');
+            // Verificar se o comentário já existe (usando _id)
+            if (comment._id && document.querySelector(`[data-comment-id="${comment._id}"]`)) {
+                console.log('Comentário duplicado ignorado:', comment._id);
+                return;
+            }
             const noComments = commentsList.querySelector('p.text-gray-400.text-center');
             if (noComments) {
                 commentsList.innerHTML = ''; // Limpa a mensagem de "sem comentários"
@@ -546,6 +551,7 @@
             const commentCard = document.createElement('div');
             commentCard.className = 'comment-card p-6 rounded-lg shadow-lg';
             commentCard.setAttribute('role', 'listitem');
+            commentCard.setAttribute('data-comment-id', comment._id || ''); // Adiciona _id para verificação
             commentCard.innerHTML = `
                 <img src="${getAvatarUrl(comment.name, comment.email)}" alt="Avatar de ${escapeHTML(comment.name)}" class="comment-avatar">
                 <div class="comment-content">
@@ -589,10 +595,9 @@
                     return;
                 }
 
-                // Garante que os comentários sejam ordenados do mais recente ao mais antigo
-                comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                // Não é necessário ordenar, pois o backend já retorna ordenado por createdAt: -1
                 comments.forEach(comment => addCommentToDOM(comment));
-                console.log('Comentários carregados em ordem (mais recente primeiro):', comments);
+                console.log('Comentários carregados (mais recente primeiro):', comments);
             } catch (error) {
                 console.error(`Erro ao carregar comentários (tentativa ${attempt}):`, error);
                 if (attempt < maxAttempts) {
