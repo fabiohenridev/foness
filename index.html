@@ -126,7 +126,7 @@
             background: linear-gradient(to bottom, #2a2a2a, #1f1f1f);
         }
         input, textarea {
-            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            transition: box-shadow 0.3s ease, border-color 0. allemande
         }
         input:focus, textarea:focus {
             box-shadow: 0 0 10px rgba(230, 57, 70, 0.4);
@@ -257,8 +257,8 @@
                                 <img src="fone-venda-8.webp" alt="Fones de Ouvido - Imagem 8" class="carousel-img rounded-lg shadow-lg w-full" onerror="this.src='https://via.placeholder.com/600x400?text=Imagem+8'">
                             </div>
                         </div>
-                        <button class="carousel-btn prev-btn" aria-label="Imagem anterior">&#10094;</button>
-                        <button class="carousel-btn next-btn" aria-label="Próxima imagem">&#10095;</button>
+                        <button class="carousel-btn prev-btn" aria-label="Imagem anterior">❮</button>
+                        <button class="carousel-btn next-btn" aria-label="Próxima imagem">❯</button>
                         <div class="carousel-dots" id="carousel-dots" role="tablist"></div>
                     </div>
                 </div>
@@ -378,7 +378,7 @@
     <!-- Socket.IO Client -->
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     <script>
-        const API_BASE_URL = 'https://backend-fone.onrender.com'; // Ajuste conforme o domínio do backend
+        const API_BASE_URL = 'https://backend-fone.onrender.com';
         let socket;
 
         // Função para atualizar o status de conexão
@@ -505,10 +505,34 @@
             return str.replace(/[&<>"'\/]/g, char => entityMap[char]);
         }
 
-        // Função para gerar URL do avatar usando DiceBear
-        function getAvatarUrl(name) {
+        // Função para calcular um hash simples a partir de uma string
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32-bit integer
+            }
+            return Math.abs(hash);
+        }
+
+        // Array de cores para os avatares
+        const avatarColors = [
+            'E63946', // Red
+            '457B9D', // Blue
+            '2A9D8F', // Teal
+            'F4A261', // Orange
+            '9B59B6', // Purple
+            'E76F51', // Coral
+        ];
+
+        // Função para gerar URL do avatar usando DiceBear com cores variadas
+        function getAvatarUrl(name, email) {
             const seed = encodeURIComponent(name || 'unknown');
-            return `https://api.dicebear.com/9.x/initials/svg?seed=${seed}&backgroundColor=E63946&fontSize=40`;
+            // Usa o email para determinar a cor, garantindo consistência para o mesmo usuário
+            const colorIndex = email ? simpleHash(email) % avatarColors.length : 0;
+            const color = avatarColors[colorIndex];
+            return `https://api.dicebear.com/9.x/initials/svg?seed=${seed}&backgroundColor=${color}&fontSize=40`;
         }
 
         // Função para adicionar um novo comentário ao DOM
@@ -522,13 +546,14 @@
             commentCard.className = 'comment-card p-6 rounded-lg shadow-lg';
             commentCard.setAttribute('role', 'listitem');
             commentCard.innerHTML = `
-                <img src="${getAvatarUrl(comment.name)}" alt="Avatar de ${escapeHTML(comment.name)}" class="comment-avatar">
+                <img src="${getAvatarUrl(comment.name, comment.email)}" alt="Avatar de ${escapeHTML(comment.name)}" class="comment-avatar">
                 <div class="comment-content">
                     <p class="text-gray-400">${escapeHTML(comment.message)}</p>
                     <p class="mt-2 font-bold text-white">- ${escapeHTML(comment.name)}</p>
                     <p class="comment-date">${new Date(comment.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                 </div>
             `;
+            // Insere o novo comentário no início para garantir que o mais recente fique no topo
             commentsList.insertBefore(commentCard, commentsList.firstChild);
         }
 
@@ -562,6 +587,7 @@
                     return;
                 }
 
+                // Garante que os comentários sejam ordenados do mais recente ao mais antigo
                 comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 comments.forEach(comment => addCommentToDOM(comment));
             } catch (error) {
