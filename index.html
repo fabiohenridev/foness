@@ -77,6 +77,14 @@
             font-size: 0.875rem;
             color: #6b7280;
         }
+        .toggle-replies-btn {
+            margin-top: 0.5rem;
+            color: #e63946;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
         section, header, footer {
             position: relative;
             z-index: 1;
@@ -216,6 +224,10 @@
         .reply-form.active {
             display: block;
         }
+        .replies-container {
+            display: none;
+            margin-top: 1rem;
+        }
         @media (min-width: 768px) {
             #commentsList {
                 flex-direction: row;
@@ -287,7 +299,7 @@
                                 <img src="fone-venda-8.webp" alt="Fones de Ouvido - Imagem 8" class="carousel-img rounded-lg shadow-lg w-full" onerror="this.src='https://via.placeholder.com/600x400?text=Imagem+8'">
                             </div>
                         </div>
-                        <button class="carousel-btn prev-btn" aria-label="Imagem anterior">❮</button>
+                        < Button class="carousel-btn prev-btn" aria-label="Imagem anterior">❮</button>
                         <button class="carousel-btn next-btn" aria-label="Próxima imagem">❯</button>
                         <div class="carousel-dots" id="carousel-dots" role="tablist"></div>
                     </div>
@@ -386,12 +398,12 @@
                     <input type="text" id="commentName" placeholder="Seu Nome" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" required>
                     <label for="commentEmail" class="sr-only">Seu Email</label>
                     <input type="email" id="commentEmail" placeholder="Seu Email" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" required>
-                    <label for="commentMessage" class="sr-only">Seu Comentário</label>
+                    <label for="commentMessage" class=" esr-only">Seu Comentário</label>
                     <textarea id="commentMessage" placeholder="Seu Comentário" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" rows="4" required></textarea>
                     <button type="submit" id="submitComment" class="w-full btn-red text-white px-6 py-3 rounded-lg text-lg font-semibold" aria-label="Enviar Comentário">Enviar Comentário</button>
                 </form>
             </div>
-            <h3 class="mt-8 text-2xl font-bold text-center text-white">Comentários dos Usuários</h3>
+            <h3 class="mt-16 mb-8 text-2xl font-bold text-center text-white">Comentários dos Usuários</h3>
             <div id="connectionStatus" class="text-center text-gray-400" role="status"></div>
             <div id="commentsList" role="list"></div>
         </div>
@@ -574,6 +586,12 @@
                 </div>
             `;
             repliesContainer.appendChild(replyCard);
+            // Atualizar texto do botão de toggle
+            const toggleBtn = commentCard.querySelector('.toggle-replies-btn');
+            if (toggleBtn) {
+                const replies = commentCard.querySelectorAll('.reply-card').length;
+                toggleBtn.textContent = `Ver respostas ao comentário (${replies})`;
+            }
         }
 
         // Adicionar comentário ao DOM
@@ -591,31 +609,32 @@
             commentCard.setAttribute('role', 'listitem');
             commentCard.setAttribute('data-comment-id', comment._id);
             commentCard.innerHTML = `
-                <img src="${getAvatarUrl(comment.name, comment.email)}" alt="Avatar de ${escapeHTML(comment.name)}" class="comment-avatar">
-                <div class="comment-content">
-                    <p class="text-gray-400">${escapeHTML(comment.message)}</p>
-                    <p class="mt-2 font-bold text-white">- ${escapeHTML(comment.name)}</p>
-                    <p class="comment-date">${new Date(comment.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
-                    <button class="reply-btn text-red-600 mt-2" aria-label="Responder ao comentário de ${escapeHTML(comment.name)}">Responder</button>
-                    <form class="reply-form space-y-4" data-parent-id="${comment._id}">
-                        <label for="replyName-${comment._id}" class="sr-only">Seu Nome</label>
-                        <input type="text" id="replyName-${comment._id}" placeholder="Seu Nome" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" required>
-                        <label for="replyEmail-${comment._id}" class="sr-only">Seu Email</label>
-                        <input type="email" id="replyEmail-${comment._id}" placeholder="Seu Email" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" required>
-                        <label for="replyMessage-${comment._id}" class="sr-only">Sua Resposta</label>
-                        <textarea id="replyMessage-${comment._id}" placeholder="Sua Resposta" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" rows="3" required></textarea>
-                        <button type="submit" class="btn-red text-white px-4 py-2 rounded-lg text-sm font-semibold" aria-label="Enviar Resposta">Enviar Resposta</button>
-                    </form>
+                <div class="flex items-center">
+                    <img src="${getAvatarUrl(comment.name, comment.email)}" alt="Avatar de ${escapeHTML(comment.name)}" class="comment-avatar">
+                    <div class="comment-content">
+                        <p class="text-gray-400">${escapeHTML(comment.message)}</p>
+                        <p class="mt-2 font-bold text-white">- ${escapeHTML(comment.name)}</p>
+                        <p class="comment-date">${new Date(comment.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
+                        <button class="reply-btn text-red-600 mt-2" aria-label="Responder ao comentário de ${escapeHTML(comment.name)}">Responder</button>
+                    </div>
                 </div>
+                <form class="reply-form space-y-4" data-parent-id="${comment._id}">
+                    <label for="replyName-${comment._id}" class="sr-only">Seu Nome</label>
+                    <input type="text" id="replyName-${comment._id}" placeholder="Seu Nome" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" required>
+                    <label for="replyEmail-${comment._id}" class="sr-only">Seu Email</label>
+                    <input type="email" id="replyEmail-${comment._id}" placeholder="Seu Email" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" required>
+                    <label for="replyMessage-${comment._id}" class="sr-only">Sua Resposta</label>
+                    <textarea id="replyMessage-${comment._id}" placeholder="Sua Resposta" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white" rows="3" required></textarea>
+                    <button type="submit" class="btn-red text-white px-4 py-2 rounded-lg text-sm font-semibold" aria-label="Enviar Resposta">Enviar Resposta</button>
+                </form>
+                <button class="toggle-replies-btn">Ver respostas ao comentário (${comment.replies?.length || 0})</button>
+                <div class="replies-container"></div>
             `;
             commentsList.prepend(commentCard);
 
             // Renderizar respostas existentes
             if (comment.replies?.length) {
-                const repliesContainer = document.createElement('div');
-                repliesContainer.className = 'replies-container';
                 comment.replies.forEach(reply => addReplyToDOM(reply, comment._id));
-                commentCard.appendChild(repliesContainer);
             }
 
             // Toggle formulário de resposta
@@ -624,6 +643,17 @@
                 replyBtn.addEventListener('click', () => {
                     const replyForm = commentCard.querySelector('.reply-form');
                     if (replyForm) replyForm.classList.toggle('active');
+                });
+            }
+
+            // Toggle respostas
+            const toggleRepliesBtn = commentCard.querySelector('.toggle-replies-btn');
+            const repliesContainer = commentCard.querySelector('.replies-container');
+            if (toggleRepliesBtn && repliesContainer) {
+                toggleRepliesBtn.addEventListener('click', () => {
+                    const isHidden = repliesContainer.style.display === 'none' || !repliesContainer.style.display;
+                    repliesContainer.style.display = isHidden ? 'block' : 'none';
+                    toggleRepliesBtn.textContent = isHidden ? 'Ocultar respostas' : `Ver respostas ao comentário (${comment.replies?.length || 0})`;
                 });
             }
 
