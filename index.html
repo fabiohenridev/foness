@@ -52,8 +52,6 @@
         </div>
     </header>
 
-    <!-- Conteúdo... produto, especificações, depoimentos mantidos iguais -->
-
     <!-- Seção de Comentários -->
     <section class="py-16" style="background-color: #1f1f1f;">
         <div class="container mx-auto px-4">
@@ -67,8 +65,8 @@
                     <button type="submit" id="submitComment" class="w-full btn-red text-white px-6 py-3 rounded-lg text-lg font-semibold">Enviar Comentário</button>
                 </form>
             </div>
-            <!-- Espaçamento aumentado antes da listagem -->
-            <h3 class="mt-14 text-2xl font-bold text-center text-white">Comentários dos Usuários</h3>
+            <!-- Espaçamento ajustado antes da listagem -->
+            <h3 class="mt-16 mb-8 text-2xl font-bold text-center text-white">Comentários dos Usuários</h3>
             <div id="connectionStatus" class="text-center text-gray-400" role="status"></div>
             <div id="commentsList" role="list"></div>
         </div>
@@ -87,150 +85,21 @@
     <script>
         const API_BASE_URL = 'https://backend-fone.onrender.com';
         function escapeHTML(str) {
-            const div = document.createElement('div');
-            div.textContent = str || '';
-            return div.innerHTML;
+            const div = document.createElement('div'); div.textContent = str||''; return div.innerHTML;
         }
         function simpleHash(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                hash = ((hash << 5) - hash) + str.charCodeAt(i);
-                hash |= 0;
-            }
-            return Math.abs(hash);
+            let hash=0; for(let i=0;i<str.length;i++){hash=((hash<<5)-hash)+str.charCodeAt(i);hash|=0;} return Math.abs(hash);
         }
-        const avatarColors = ['E63946','457B9D','2A9D8F','F4A261','9B59B6','E76F51'];
-        function getAvatarUrl(name, email) {
-            const seed = encodeURIComponent(name || 'unknown');
-            const idx = email ? simpleHash(email) % avatarColors.length : 0;
-            return `https://api.dicebear.com/9.x/initials/svg?seed=${seed}&backgroundColor=${avatarColors[idx]}&fontSize=40`;
-        }
-
-        function addReplyToDOM(reply, parentId) {
-            const container = document.querySelector(`[data-comment-id="${parentId}"] .replies-container`);
-            if (!container) return;
-            const card = document.createElement('div');
-            card.className = 'reply-card';
-            card.innerHTML = `
-                <img src="${getAvatarUrl(reply.name, reply.email)}" class="comment-avatar" alt="Avatar">
-                <div class="comment-content">
-                    <p class="text-gray-400">${escapeHTML(reply.message)}</p>
-                    <p class="mt-2 font-bold text-white">- ${escapeHTML(reply.name)}</p>
-                    <p class="comment-date">${new Date(reply.createdAt).toLocaleDateString('pt-BR')}</p>
-                </div>
-            `;
-            container.appendChild(card);
-        }
-
-        function addCommentToDOM(comment) {
-            const list = document.getElementById('commentsList');
-            if (!list) return;
-            if (list.querySelector('p.text-gray-400.text-center')) {
-                list.innerHTML = '';
-            }
-            const card = document.createElement('div');
-            card.className = 'comment-card';
-            card.setAttribute('role','listitem');
-            card.setAttribute('data-comment-id', comment._id);
-
-            card.innerHTML = `
-                <div class="flex items-center">
-                    <img src="${getAvatarUrl(comment.name, comment.email)}" class="comment-avatar" alt="Avatar">
-                    <div class="comment-content">
-                        <p class="text-gray-400">${escapeHTML(comment.message)}</p>
-                        <p class="mt-2 font-bold text-white">- ${escapeHTML(comment.name)}</p>
-                        <p class="comment-date">${new Date(comment.createdAt).toLocaleDateString('pt-BR')}</p>
-                        <button class="reply-btn text-red-600 mt-2">Responder</button>
-                    </div>
-                </div>
-                <form class="reply-form space-y-4" data-parent-id="${comment._id}">
-                    <input type="text" placeholder="Seu Nome" required class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white">
-                    <input type="email" placeholder="Seu Email" required class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white">
-                    <textarea placeholder="Sua Resposta" required rows="3" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white"></textarea>
-                    <button type="submit" class="btn-red text-white px-4 py-2 rounded-lg text-sm font-semibold">Enviar Resposta</button>
-                </form>
-                <button class="toggle-replies-btn">Ver respostas ao comentário (${comment.replies?.length||0})</button>
-                <div class="replies-container"></div>
-            `;
+        const avatarColors=['E63946','457B9D','2A9D8F','F4A261','9B59B6','E76F51'];
+        function getAvatarUrl(name,email){const seed=encodeURIComponent(name||'unknown');const idx=email?simpleHash(email)%avatarColors.length:0;return `https://api.dicebear.com/9.x/initials/svg?seed=${seed}&backgroundColor=${avatarColors[idx]}&fontSize=40`;}
+        function addReplyToDOM(reply,parentId){const container=document.querySelector(`[data-comment-id="${parentId}"] .replies-container`);if(!container)return;const card=document.createElement('div');card.className='reply-card';card.innerHTML=`<img src="${getAvatarUrl(reply.name,reply.email)}" class="comment-avatar" alt="Avatar"><div class="comment-content"><p class="text-gray-400">${escapeHTML(reply.message)}</p><p class="mt-2 font-bold text-white">- ${escapeHTML(reply.name)}</p><p class="comment-date">${new Date(reply.createdAt).toLocaleDateString('pt-BR')}</p></div>`;container.appendChild(card);}        
+        function addCommentToDOM(comment){const list=document.getElementById('commentsList');if(!list)return; if(list.querySelector('p.text-gray-400.text-center'))list.innerHTML=''; const card=document.createElement('div');card.className='comment-card';card.setAttribute('role','listitem');card.setAttribute('data-comment-id',comment._id);
+            card.innerHTML=`<div class="flex items-center"><img src="${getAvatarUrl(comment.name,comment.email)}" class="comment-avatar" alt="Avatar"><div class="comment-content"><p class="text-gray-400">${escapeHTML(comment.message)}</p><p class="mt-2 font-bold text-white">- ${escapeHTML(comment.name)}</p><p class="comment-date">${new Date(comment.createdAt).toLocaleDateString('pt-BR')}</p><button class="reply-btn text-red-600 mt-2">Responder</button></div></div><form class="reply-form space-y-4" data-parent-id="${comment._id}"><input type="text" placeholder="Seu Nome" required class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white"><input type="email" placeholder="Seu Email" required class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white"><textarea placeholder="Sua Resposta" required rows="3" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-white"></textarea><button type="submit" class="btn-red text-white px-4 py-2 rounded-lg text-sm font-semibold">Enviar Resposta</button></form><button class="toggle-replies-btn">Ver respostas ao comentário (${comment.replies?.length||0})</button><div class="replies-container"></div>`;
             list.prepend(card);
-
-            if (comment.replies?.length) comment.replies.forEach(r => addReplyToDOM(r, comment._id));
-            card.querySelector('.reply-btn').addEventListener('click', () => {
-                card.querySelector('.reply-form').classList.toggle('active');
-            });
-            const toggle = card.querySelector('.toggle-replies-btn');
-            const replies = card.querySelector('.replies-container');
-            toggle.addEventListener('click', () => {
-                const show = replies.style.display === 'none' || !replies.style.display;
-                replies.style.display = show ? 'block' : 'none';
-                toggle.textContent = show
-                    ? 'Ocultar respostas'
-                    : `Ver respostas ao comentário (${comment.replies?.length||0})`;
-            });
-            card.querySelector('.reply-form').addEventListener('submit', async e => {
-                e.preventDefault();
-                const f = e.target;
-                const [name, email, message] = [f[0].value.trim(), f[1].value.trim(), f[2].value.trim()];
-                if (!name || !email || !message) return alert('Preencha todos os campos.');
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert('Email inválido.');
-                try {
-                    const res = await fetch(`${API_BASE_URL}/api/comments/reply`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, email, message, parentId: comment._id })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || res.status);
-                    alert(data.message);
-                    f.reset();
-                    f.classList.remove('active');
-                } catch (err) {
-                    alert(`Erro: ${err.message}`);
-                }
-            });
-        }
-
-        async function loadComments() {
-            const list = document.getElementById('commentsList');
-            list.innerHTML = '<p class="text-gray-400 text-center">Carregando comentários...</p>';
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/comments`);
-                if (!res.ok) throw new Error(res.status);
-                const comments = await res.json();
-                list.innerHTML = '';
-                if (!comments.length) {
-                    list.innerHTML = '<p class="text-gray-400 text-center">Nenhum comentário ainda.</p>';
-                    return;
-                }
-                comments.reverse().forEach(addCommentToDOM);
-            } catch {
-                list.innerHTML = '<p class="text-red-600 text-center">Erro ao carregar comentários.</p>';
-            }
-        }
-
-        document.getElementById('commentForm').addEventListener('submit', async e => {
-            e.preventDefault();
-            const n = e.target;
-            const [name, email, message] = [n.commentName.value.trim(), n.commentEmail.value.trim(), n.commentMessage.value.trim()];
-            if (!name || !email || !message) return alert('Preencha todos os campos.');
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert('Email inválido.');
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/comments`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, message })
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || res.status);
-                alert(data.message);
-                n.reset();
-            } catch (err) {
-                alert(`Erro: ${err.message}`);
-            }
-        });
-
-        loadComments();
-        setInterval(async () => { try { await fetch(`${API_BASE_URL}/ping`); } catch {} }, 300000);
+            if(comment.replies?.length)comment.replies.forEach(r=>addReplyToDOM(r,comment._id));card.querySelector('.reply-btn').addEventListener('click',()=>{card.querySelector('.reply-form').classList.toggle('active')});const toggle=card.querySelector('.toggle-replies-btn'),replies=card.querySelector('.replies-container');toggle.addEventListener('click',()=>{const show=replies.style.display==='none'||!replies.style.display;replies.style.display=show?'block':'none';toggle.textContent=show?'Ocultar respostas':`Ver respostas ao comentário (${comment.replies?.length||0})`;});card.querySelector('.reply-form').addEventListener('submit',async e=>{e.preventDefault();const f=e.target;const[name,email,message]=[f[0].value.trim(),f[1].value.trim(),f[2].value.trim()];if(!name||!email||!message)return alert('Preencha todos os campos.');if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert('Email inválido.');try{const res=await fetch(`${API_BASE_URL}/api/comments/reply`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,message,parentId:comment._id})});const data=await res.json();if(!res.ok)throw new Error(data.error||res.status);alert(data.message);f.reset();f.classList.remove('active');}catch(err){alert(`Erro: ${err.message}`);} });}
+        async function loadComments(){const list=document.getElementById('commentsList');list.innerHTML='<p class="text-gray-400 text-center">Carregando comentários...</p>';try{const res=await fetch(`${API_BASE_URL}/api/comments`);if(!res.ok)throw new Error(res.status);const comments=await res.json();list.innerHTML='';if(!comments.length){list.innerHTML='<p class="text-gray-400 text-center">Nenhum comentário ainda.</p>';return;}comments.reverse().forEach(addCommentToDOM);}catch{list.innerHTML='<p class="text-red-600 text-center">Erro ao carregar comentários.</p>'}};
+        document.getElementById('commentForm').addEventListener('submit',async e=>{e.preventDefault();const n=e.target;const[name,email,message]=[n.commentName.value.trim(),n.commentEmail.value.trim(),n.commentMessage.value.trim()];if(!name||!email||!message)return alert('Preencha todos os campos.');if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert('Email inválido.');try{const res=await fetch(`${API_BASE_URL}/api/comments`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,message})});const data=await res.json();if(!res.ok)throw new Error(data.error||res.status);alert(data.message);n.reset();}catch(err){alert(`Erro: ${err.message}`);} });
+        loadComments();setInterval(async()=>{try{await fetch(`${API_BASE_URL}/ping`);}catch{}},300000);
     </script>
 </body>
 </html>
