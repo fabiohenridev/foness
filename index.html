@@ -126,7 +126,7 @@
             background: linear-gradient(to bottom, #2a2a2a, #1f1f1f);
         }
         input, textarea {
-            transition: box-shadow 0.3s ease, border-color 0. allemande
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
         input:focus, textarea:focus {
             box-shadow: 0 0 10px rgba(230, 57, 70, 0.4);
@@ -426,6 +426,7 @@
             });
 
             socket.on('newComment', (comment) => {
+                console.log('Novo comentário recebido:', comment);
                 addCommentToDOM(comment);
             });
 
@@ -540,7 +541,7 @@
             const commentsList = document.getElementById('commentsList');
             const noComments = commentsList.querySelector('p.text-gray-400.text-center');
             if (noComments) {
-                commentsList.innerHTML = '';
+                commentsList.innerHTML = ''; // Limpa a mensagem de "sem comentários"
             }
             const commentCard = document.createElement('div');
             commentCard.className = 'comment-card p-6 rounded-lg shadow-lg';
@@ -554,7 +555,8 @@
                 </div>
             `;
             // Insere o novo comentário no início para garantir que o mais recente fique no topo
-            commentsList.insertBefore(commentCard, commentsList.firstChild);
+            commentsList.prepend(commentCard);
+            console.log('Comentário adicionado ao topo:', comment);
         }
 
         // Função para carregar comentários iniciais com retry
@@ -590,6 +592,7 @@
                 // Garante que os comentários sejam ordenados do mais recente ao mais antigo
                 comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 comments.forEach(comment => addCommentToDOM(comment));
+                console.log('Comentários carregados em ordem (mais recente primeiro):', comments);
             } catch (error) {
                 console.error(`Erro ao carregar comentários (tentativa ${attempt}):`, error);
                 if (attempt < maxAttempts) {
