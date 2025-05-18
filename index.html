@@ -53,6 +53,7 @@
             background-color: #2a2a2a;
             padding: 1.5rem;
             border-radius: 8px;
+            margin-bottom: 1rem;
         }
         .comment-card:hover {
             transform: translateY(-4px);
@@ -195,6 +196,21 @@
         }
         .carousel-dot.active {
             background-color: #e63946;
+        }
+        #commentsList {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        @media (min-width: 768px) {
+            #commentsList {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+            .comment-card {
+                flex: 0 0 calc(50% - 0.5rem);
+            }
         }
     </style>
     <link rel="icon" href="TEC.png" type="image/x-icon">
@@ -363,7 +379,7 @@
             </div>
             <h3 class="mt-8 text-2xl font-bold text-center text-white">Comentários dos Usuários</h3>
             <div id="connectionStatus" class="text-center text-gray-400" role="status"></div>
-            <div id="commentsList" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6" role="list"></div>
+            <div id="commentsList" role="list"></div>
         </div>
     </section>
 
@@ -530,7 +546,6 @@
         // Função para gerar URL do avatar usando DiceBear com cores variadas
         function getAvatarUrl(name, email) {
             const seed = encodeURIComponent(name || 'unknown');
-            // Usa o email para determinar a cor, garantindo consistência para o mesmo usuário
             const colorIndex = email ? simpleHash(email) % avatarColors.length : 0;
             const color = avatarColors[colorIndex];
             return `https://api.dicebear.com/9.x/initials/svg?seed=${seed}&backgroundColor=${color}&fontSize=40`;
@@ -539,19 +554,14 @@
         // Função para adicionar um novo comentário ao DOM
         function addCommentToDOM(comment) {
             const commentsList = document.getElementById('commentsList');
-            // Verificar se o comentário já existe (usando _id)
-            if (comment._id && document.querySelector(`[data-comment-id="${comment._id}"]`)) {
-                console.log('Comentário duplicado ignorado:', comment._id);
-                return;
-            }
+            console.log('Adicionando comentário:', comment);
             const noComments = commentsList.querySelector('p.text-gray-400.text-center');
             if (noComments) {
                 commentsList.innerHTML = ''; // Limpa a mensagem de "sem comentários"
             }
             const commentCard = document.createElement('div');
-            commentCard.className = 'comment-card p-6 rounded-lg shadow-lg';
+            commentCard.className = 'comment-card';
             commentCard.setAttribute('role', 'listitem');
-            commentCard.setAttribute('data-comment-id', comment._id || ''); // Adiciona _id para verificação
             commentCard.innerHTML = `
                 <img src="${getAvatarUrl(comment.name, comment.email)}" alt="Avatar de ${escapeHTML(comment.name)}" class="comment-avatar">
                 <div class="comment-content">
@@ -560,9 +570,8 @@
                     <p class="comment-date">${new Date(comment.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                 </div>
             `;
-            // Insere o novo comentário no início para garantir que o mais recente fique no topo
             commentsList.prepend(commentCard);
-            console.log('Comentário adicionado ao topo:', comment);
+            console.log('Comentário adicionado ao topo:', comment.message, 'createdAt:', comment.createdAt);
         }
 
         // Função para carregar comentários iniciais com retry
@@ -589,15 +598,17 @@
 
                 const comments = await response.json();
                 commentsList.innerHTML = '';
+                console.log('Comentários recebidos do backend:', comments);
 
                 if (comments.length === 0) {
                     commentsList.innerHTML = '<p class="text-gray-400 text-center">Nenhum comentário ainda. Seja o primeiro!</p>';
                     return;
                 }
 
-                // Não é necessário ordenar, pois o backend já retorna ordenado por createdAt: -1
-                comments.forEach(comment => addCommentToDOM(comment));
-                console.log('Comentários carregados (mais recente primeiro):', comments);
+                comments.forEach((comment, index) => {
+                    addCommentToDOM(comment);
+                    console.log(`Comentário ${index + 1} adicionado:`, comment.message, 'createdAt:', comment.createdAt);
+                });
             } catch (error) {
                 console.error(`Erro ao carregar comentários (tentativa ${attempt}):`, error);
                 if (attempt < maxAttempts) {
@@ -648,6 +659,7 @@
                 }
 
                 const result = await response.json();
+                console.log('Comentário enviado com sucesso:', result);
                 alert(result.message);
                 document.getElementById('commentName').value = '';
                 document.getElementById('commentEmail').value = '';
