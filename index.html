@@ -574,51 +574,30 @@
             console.log('Comentário adicionado ao topo:', comment.message, 'createdAt:', comment.createdAt);
         }
 
-        // Função para carregar comentários iniciais com retry
-        async function loadComments(attempt = 1, maxAttempts = 3) {
-            const commentsList = document.getElementById('commentsList');
-            commentsList.innerHTML = '<p class="text-gray-400 text-center">Carregando comentários...</p>';
+       // Função para carregar comentários iniciais (somente isso muda)
+async function loadComments(attempt = 1) {
+  const list = document.getElementById('commentsList');
+  list.innerHTML = '<p class="text-gray-400 text-center">Carregando comentários...</p>';
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/comments`);
+    if (!res.ok) throw new Error(res.status);
+    const comments = await res.json();
+    list.innerHTML = '';
+    if (!comments.length) {
+      list.innerHTML = '<p class="text-gray-400 text-center">Nenhum comentário ainda. Seja o primeiro!</p>';
+      return;
+    }
+    // Aqui invertemos para que o mais antigo seja adicionado primeiro
+    comments.reverse().forEach(addCommentToDOM);
+  } catch (err) {
+    if (attempt < 3) {
+      setTimeout(() => loadComments(attempt + 1), attempt * 2000);
+    } else {
+      list.innerHTML = '<p class="text-red-600 text-center">Erro ao carregar comentários. Tente novamente mais tarde.</p>';
+    }
+  }
+}
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/comments`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Erro HTTP: ${response.status}`);
-                }
-
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Resposta não é JSON');
-                }
-
-                const comments = await response.json();
-                commentsList.innerHTML = '';
-                console.log('Comentários recebidos do backend:', comments);
-
-                if (comments.length === 0) {
-                    commentsList.innerHTML = '<p class="text-gray-400 text-center">Nenhum comentário ainda. Seja o primeiro!</p>';
-                    return;
-                }
-
-                comments.forEach((comment, index) => {
-                    addCommentToDOM(comment);
-                    console.log(`Comentário ${index + 1} adicionado:`, comment.message, 'createdAt:', comment.createdAt);
-                });
-            } catch (error) {
-                console.error(`Erro ao carregar comentários (tentativa ${attempt}):`, error);
-                if (attempt < maxAttempts) {
-                    console.log(`Tentando novamente em ${attempt * 2} segundos...`);
-                    setTimeout(() => loadComments(attempt + 1, maxAttempts), attempt * 2000);
-                } else {
-                    commentsList.innerHTML = '<p class="text-red-600 text-center">Erro ao carregar comentários. Verifique sua conexão ou tente novamente mais tarde.</p>';
-                }
-            }
-        }
 
         // Função para enviar comentário
         document.getElementById('commentForm').addEventListener('submit', async (e) => {
