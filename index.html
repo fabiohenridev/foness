@@ -408,7 +408,7 @@
     <!-- Socket.IO Client -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
-        const API_BASE_URL = 'https://backend-fone.onrender.com';
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://backend-fone.onrender.com';
         let socket;
 
         // Atualizar status de conexão
@@ -450,6 +450,10 @@
                 console.log(`Reconectado após ${attempt} tentativas`);
                 updateConnectionStatus('connected', 'Reconectado!');
                 loadComments();
+            });
+
+            socket.on('reconnect_attempt', (attempt) => {
+                console.log(`Tentativa de reconexão ${attempt}`);
             });
 
             socket.on('reconnect_failed', () => {
@@ -645,6 +649,11 @@
                         return;
                     }
 
+                    if (message.length > 500) {
+                        alert('A resposta não pode exceder 500 caracteres.');
+                        return;
+                    }
+
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailRegex.test(email)) {
                         alert('Insira um email válido.');
@@ -660,12 +669,17 @@
                             body: JSON.stringify({ name, email, message, parentId }),
                         });
 
+                        const result = await response.json();
                         if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
+                            if (response.status === 404) {
+                                throw new Error('Rota /api/comments/reply não encontrada. Verifique se o servidor está ativo.');
+                            } else if (response.status === 400) {
+                                throw new Error(result.error || 'Dados inválidos enviados.');
+                            } else {
+                                throw new Error(result.error || `Erro HTTP: ${response.status}`);
+                            }
                         }
 
-                        const result = await response.json();
                         alert(result.message);
                         if (nameInput) nameInput.value = '';
                         if (emailInput) emailInput.value = '';
@@ -724,6 +738,11 @@
                     return;
                 }
 
+                if (message.length > 500) {
+                    alert('O comentário não pode exceder 500 caracteres.');
+                    return;
+                }
+
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(email)) {
                     alert('Insira um email válido.');
@@ -739,12 +758,15 @@
                         body: JSON.stringify({ name, email, message }),
                     });
 
+                    const result = await response.json();
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
+                        if (response.status === 400) {
+                            throw new Error(result.error || 'Dados inválidos enviados.');
+                        } else {
+                            throw new Error(result.error || `Erro HTTP: ${response.status}`);
+                        }
                     }
 
-                    const result = await response.json();
                     alert(result.message);
                     if (nameInput) nameInput.value = '';
                     if (emailInput) emailInput.value = '';
