@@ -175,7 +175,8 @@
                 <button type="submit" id="submitComment" class="w-full btn-red text-white px-6 py-3 rounded-lg text-lg font-semibold" aria-label="Enviar Comentário">Enviar Comentário</button>
             </form>
         </div>
-        <h3 class="mt-8 text-2xl font-bold text-center text-white">Comentários dos Usuários</h3>
+        <!-- ------------ título ajustado (mt‑12) ------------ -->
+        <h3 class="mt-12 text-2xl font-bold text-center text-white">Comentários dos Usuários</h3>
         <div id="connectionStatus" class="text-center text-gray-400" role="status"></div>
         <div id="commentsList" role="list"></div>
     </div>
@@ -195,7 +196,7 @@
 const API_BASE_URL='https://backend-fone.onrender.com';
 let socket;
 function updateConnectionStatus(status,msg){
-    if(status==='connected') return;            // <‑‑ alteração (não mostra conectado)
+    if(status==='connected') return;            // não mostrar “Conectado”
     const el=document.getElementById('connectionStatus');
     el.textContent=msg;
     el.className=`text-center ${status==='disconnected'?'text-red-600':'text-yellow-600'}`;
