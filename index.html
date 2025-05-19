@@ -175,6 +175,7 @@
         <h3 class="mt-16 text-2xl font-bold text-center text-white">Comentários dos Usuários</h3>
         <div id="connectionStatus" class="text-center text-gray-400" role="status"></div>
         <div id="commentsList" class="mt-8" role="list"></div>
+        <div id="loadMoreContainer" class="text-center mt-4"></div>
     </div>
 </section>
 
@@ -189,6 +190,9 @@
 <script>
 const API_BASE_URL = 'https://backend-fone.onrender.com';
 let socket = null;
+let allComments = [];
+let displayedComments = 0;
+const COMMENTS_PER_PAGE = 10;
 
 function updateConnectionStatus(status, msg) {
     const el = document.getElementById('connectionStatus');
@@ -240,9 +244,14 @@ function initializeSocket() {
             updateConnectionStatus('disconnected', 'Não foi possível reconectar. Recarregue a página.');
         });
         socket.on('newComment', (comment) => {
-            if (comment && comment.message && comment.createdAt) {
+            if (comment && comment.message && comment.createdAt && comment.userId) {
                 console.log('New comment received:', comment);
-                addCommentToDOM(comment);
+                allComments.unshift(comment);
+                if (displayedComments < COMMENTS_PER_PAGE) {
+                    addCommentToDOM(comment);
+                    displayedComments++;
+                }
+                updateLoadMoreButton();
             } else {
                 console.warn('Invalid comment received:', comment);
             }
@@ -340,7 +349,7 @@ function escapeHTML(str) {
         '<': '&lt;',
         '>': '&gt;',
         '"': '&quot;',
-        "'": '&#39;',
+        "'": '&apos;',
         '/': '&#x2F;'
     }[char]));
 }
@@ -423,17 +432,15 @@ function addCommentToDOM(comment) {
         console.warn('commentsList element not found');
         return;
     }
-    const empty = list.querySelector('p.text-gray-400.text-center');
-    if (empty) list.innerHTML = '';
-    if (!comment || !comment.message || !comment.createdAt) {
+    if (!comment || !comment.message || !comment.createdAt || !comment.userId) {
         console.warn('Invalid comment data:', comment);
         return;
     }
     const card = document.createElement('div');
     card.className = 'comment-card';
     card.setAttribute('role', 'listitem');
-    const username = comment.userId?.username || comment.name || 'Anônimo';
-    const email = comment.userId?.email || comment.email || '';
+    const username = comment.userId.username || 'Anônimo';
+    const email = comment.userId.email || '';
     const createdAt = comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('pt-BR') : 'Data desconhecida';
     card.innerHTML = `
         <img src="${getAvatarUrl(username, email)}" alt="Avatar de ${escapeHTML(username)}" class="comment-avatar">
@@ -444,6 +451,44 @@ function addCommentToDOM(comment) {
         </div>`;
     list.prepend(card);
     console.log(`Added comment by ${username}`);
+}
+
+function updateLoadMoreButton() {
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
+    if (!loadMoreContainer) {
+        console.warn('loadMoreContainer element not found');
+        return;
+    }
+    loadMoreContainer.innerHTML = '';
+    if (allComments.length > displayedComments) {
+        const button = document.createElement('button');
+        button.className = 'btn-red text-white px-6 py-3 rounded-lg text-lg font-semibold';
+        button.textContent = 'Ver mais comentários';
+        button.addEventListener('click', loadMoreComments);
+        loadMoreContainer.appendChild(button);
+        console.log('Load more button added');
+    } else {
+        console.log('No more comments to load');
+    }
+}
+
+function loadMoreComments() {
+    const list = document.getElementById('commentsList');
+    if (!list) {
+        console.warn('commentsList element not found');
+        return;
+    }
+    const nextComments = allComments.slice(displayedComments, displayedComments + COMMENTS_PER_PAGE);
+    nextComments.forEach(comment => {
+        if (comment && comment.message && comment.createdAt && comment.userId) {
+            addCommentToDOM(comment);
+        } else {
+            console.warn('Skipping invalid comment:', comment);
+        }
+    });
+    displayedComments += nextComments.length;
+    console.log(`Loaded ${nextComments.length} more comments, total displayed: ${displayedComments}`);
+    updateLoadMoreButton();
 }
 
 async function loadComments(attempt = 1) {
@@ -463,29 +508,35 @@ async function loadComments(attempt = 1) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || errorData.details || `Erro HTTP: ${response.status}`);
         }
-        const comments = await response.json();
+        allComments = await response.json();
         list.innerHTML = '';
-        if (!Array.isArray(comments) || comments.length === 0) {
+        displayedComments = 0;
+        if (!Array.isArray(allComments) || allComments.length === 0) {
             list.innerHTML = '<p class="text-gray-400 text-center">Nenhum comentário ainda. Seja o primeiro!</p>';
             console.log('No comments found');
+            updateLoadMoreButton();
             return;
         }
-        comments.reverse().forEach(comment => {
-            if (comment && comment.message && comment.createdAt) {
+        const initialComments = allComments.slice(0, COMMENTS_PER_PAGE);
+        initialComments.reverse().forEach(comment => {
+            if (comment && comment.message && comment.createdAt && comment.userId) {
                 addCommentToDOM(comment);
             } else {
                 console.warn('Skipping invalid comment:', comment);
             }
         });
-        console.log(`Loaded ${comments.length} comments`);
+        displayedComments = initialComments.length;
+        console.log(`Loaded ${initialComments.length} initial comments, total available: ${allComments.length}`);
+        updateLoadMoreButton();
     } catch (err) {
         console.error(`Attempt ${attempt} failed to load comments:`, err);
         if (attempt < 3) {
             console.log(`Retrying loadComments, attempt ${attempt + 1}`);
             setTimeout(() => loadComments(attempt + 1), attempt * 2000);
         } else {
-            list.innerHTML = `<p class="text-red-600 text-center">Erro ao carregar comentários: ${escapeHTML(err.message)}. Tente recarregar a página.</p>`;
+            list.innerHTML = `<p class="text-red-600 text-center">Erro ao carregar comentários: ${escapeHTML(err.message || 'Tente recarregar a página.')}</p>`;
             console.error('Failed to load comments after 3 attempts');
+            updateLoadMoreButton();
         }
     }
 }
