@@ -76,7 +76,7 @@
         <div class="md:w-1/2">
             <div class="carousel-container" role="region" aria-label="Carrossel de imagens do produto">
                 <div class="carousel" id="carousel">
-                    <!-- Repita ou ajuste os src conforme suas imagens -->
+                    <!-- Imagens -->
                     <div class="carousel-item"><img src="fone-venda.webp"  alt="Imagem 1" class="carousel-img rounded-lg shadow-lg w-full" onerror="this.src='https://via.placeholder.com/600x400?text=Imagem+1'"></div>
                     <div class="carousel-item"><img src="fone-venda-2.webp" alt="Imagem 2" class="carousel-img rounded-lg shadow-lg w-full" onerror="this.src='https://via.placeholder.com/600x400?text=Imagem+2'"></div>
                     <div class="carousel-item"><img src="fone-venda-3.webp" alt="Imagem 3" class="carousel-img rounded-lg shadow-lg w-full" onerror="this.src='https://via.placeholder.com/600x400?text=Imagem+3'"></div>
@@ -195,15 +195,16 @@
 const API_BASE_URL='https://backend-fone.onrender.com';
 let socket;
 function updateConnectionStatus(status,msg){
+    if(status==='connected') return;            // <‑‑ alteração (não mostra conectado)
     const el=document.getElementById('connectionStatus');
     el.textContent=msg;
-    el.className=`text-center ${status==='connected'?'text-green-600':status==='disconnected'?'text-red-600':'text-yellow-600'}`;
+    el.className=`text-center ${status==='disconnected'?'text-red-600':'text-yellow-600'}`;
 }
 try{
     socket=io(API_BASE_URL,{transports:['websocket'],reconnection:!0,reconnectionAttempts:Infinity,reconnectionDelay:1e3,reconnectionDelayMax:5e3,randomizationFactor:.5});
-    socket.on('connect',()=>{updateConnectionStatus('connected','Conectado ao servidor.');loadComments();});
+    socket.on('connect',()=>{updateConnectionStatus('connected');loadComments();});
     socket.on('disconnect',()=>updateConnectionStatus('disconnected','Conexão perdida. Tentando reconectar...'));
-    socket.on('reconnect',()=>{updateConnectionStatus('connected','Reconectado!');loadComments();});
+    socket.on('reconnect',()=>{loadComments();});
     socket.on('reconnect_attempt',()=>updateConnectionStatus('reconnecting','Tentando reconectar...'));
     socket.on('reconnect_failed',()=>updateConnectionStatus('disconnected','Não foi possível reconectar. Recarregue a página.'));
     socket.on('newComment',addCommentToDOM);
@@ -230,6 +231,7 @@ function simpleHash(str){let h=0;for(let i=0;i<str.length;i++){h=((h<<5)-h)+str.
 const avatarColors=['E63946','457B9D','2A9D8F','F4A261','9B59B6','E76F51'];
 function getAvatarUrl(name,email){const seed=encodeURIComponent(name||'unknown'),color=avatarColors[email?simpleHash(email)%avatarColors.length:0];return`https://api.dicebear.com/9.x/initials/svg?seed=${seed}&backgroundColor=${color}&fontSize=40`;}
 
+/* ---------- Comentários ---------- */
 function addCommentToDOM(c){
     const list=document.getElementById('commentsList');
     const empty=list.querySelector('p.text-gray-400.text-center');if(empty)list.innerHTML='';
@@ -253,9 +255,7 @@ async function loadComments(attempt=1){
         const comments=await res.json();list.innerHTML='';
         if(!comments.length){list.innerHTML='<p class="text-gray-400 text-center">Nenhum comentário ainda. Seja o primeiro!</p>';return;}
         comments.reverse().forEach(addCommentToDOM);
-    }catch(err){if(attempt<3)setTimeout(()=>loadComments(attempt+1),attempt*2000);else list.innerHTML='<p class="text-red-600 text-center">Erro ao carregar comentários.</p>';}
-}
-
+    }catch(err){if(attempt<3)setTimeout(()=>loadComments(attempt+1),attempt*2000);else list.innerHTML='<p class="text-red-600 text-center">Erro ao carregar comentários.</p>';}}
 document.getElementById('commentForm').addEventListener('submit',async e=>{
     e.preventDefault();
     const name=document.getElementById('commentName').value.trim(),
@@ -269,7 +269,6 @@ document.getElementById('commentForm').addEventListener('submit',async e=>{
         alert('Comentário enviado!');document.getElementById('commentForm').reset();
     }catch(err){alert(`Erro: ${err.message}`);}
 });
-
 setInterval(async()=>{try{await fetch(`${API_BASE_URL}/ping`);}catch(e){}},3e5);
 </script>
 </body>
