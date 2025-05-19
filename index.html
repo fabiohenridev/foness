@@ -86,7 +86,7 @@
             <h2 class="text-3xl md:text-4xl font-bold text-white section-title">Imagine a cena decisiva…</h2>
             <p class="mt-4 text-gray-400">
                 A tela treme com uma explosão, você ouve passos furtivos pelo flanco direito e, num instante, reage antes que o inimigo
-                saiba de onde veio o ataque. Essa vantagem nasce aqui – nos detalhes de engenharia do <strong>Gamer Pro</strong>.
+                sabe de onde veio o ataque. Essa vantagem nasce aqui – nos detalhes de engenharia do <strong>Gamer Pro</strong>.
             </p>
             <h3 class="mt-6 text-2xl font-bold text-white">Por que eleva seu jogo:</h3>
             <ul class="mt-4 space-y-4 text-gray-300">
@@ -178,197 +178,257 @@
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 <script>
 const API_BASE_URL = 'https://backend-fone.onrender.com';
-let socket;
+let socket = null;
 
 function updateConnectionStatus(status, msg) {
-    if (status === 'connected') return;
     const el = document.getElementById('connectionStatus');
+    if (!el) {
+        console.warn('connectionStatus element not found');
+        return;
+    }
+    if (status === 'connected') {
+        el.textContent = '';
+        el.className = 'text-center text-gray-400';
+        return;
+    }
     el.textContent = msg;
     el.className = `text-center ${status === 'disconnected' ? 'text-red-600' : 'text-yellow-600'}`;
+    console.log(`Connection status: ${status} - ${msg}`);
 }
 
-try {
-    socket = io(API_BASE_URL, {
-        transports: ['websocket'],
-        reconnection: true,
-        reconnectionAttempts: Infinity,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        randomizationFactor: 0.5
-    });
-    socket.on('connect', () => {
-        updateConnectionStatus('connected');
-        loadComments();
-    });
-    socket.on('disconnect', () => updateConnectionStatus('disconnected', 'Conexão perdida. Tentando reconectar...'));
-    socket.on('reconnect', () => loadComments());
-    socket.on('reconnect_attempt', () => updateConnectionStatus('reconnecting', 'Tentando reconectar...'));
-    socket.on('reconnect_failed', () => updateConnectionStatus('disconnected', 'Não foi possível reconectar. Recarregue a página.'));
-    socket.on('newComment', addCommentToDOM);
-} catch (e) {
-    updateConnectionStatus('disconnected', 'Erro na conexão.');
+function initializeSocket() {
+    try {
+        socket = io(API_BASE_URL, {
+            transports: ['websocket'],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            randomizationFactor: 0.5
+        });
+        socket.on('connect', () => {
+            console.log('Socket connected');
+            updateConnectionStatus('connected');
+            loadComments();
+        });
+        socket.on('disconnect', () => {
+            console.warn('Socket disconnected');
+            updateConnectionStatus('disconnected', 'Conexão perdida. Tentando reconectar...');
+        });
+        socket.on('reconnect', () => {
+            console.log('Socket reconnected');
+            loadComments();
+        });
+        socket.on('reconnect_attempt', () => {
+            console.log('Socket reconnect attempt');
+            updateConnectionStatus('reconnecting', 'Tentando reconectar...');
+        });
+        socket.on('reconnect_failed', () => {
+            console.error('Socket reconnect failed');
+            updateConnectionStatus('disconnected', 'Não foi possível reconectar. Recarregue a página.');
+        });
+        socket.on('newComment', (comment) => {
+            if (comment && comment.message && comment.createdAt) {
+                console.log('New comment received:', comment);
+                addCommentToDOM(comment);
+            } else {
+                console.warn('Invalid comment received:', comment);
+            }
+        });
+        socket.on('connect_error', (err) => {
+            console.error('Socket connection error:', err.message);
+            updateConnectionStatus('disconnected', 'Erro na conexão com o servidor.');
+        });
+    } catch (e) {
+        console.error('Socket initialization failed:', e);
+        updateConnectionStatus('disconnected', 'Erro na inicialização da conexão.');
+    }
 }
 
-const carousel = document.getElementById('carousel'),
-      items = document.querySelectorAll('.carousel-item'),
-      prevBtn = document.querySelector('.prev-btn'),
-      nextBtn = document.querySelector('.next-btn'),
-      dotsContainer = document.getElementById('carousel-dots');
+const carousel = document.getElementById('carousel');
+const items = document.querySelectorAll('.carousel-item');
+const prevBtn = document.querySelector('.prev-btn');
+const nextBtn = document.querySelector('.next-btn');
+const dotsContainer = document.getElementById('carousel-dots');
 let currentIndex = 0;
 
 function createDots() {
+    if (!dotsContainer) {
+        console.warn('carousel-dots element not found');
+        return;
+    }
     dotsContainer.innerHTML = '';
     items.forEach((_, i) => {
-        const d = document.createElement('div');
-        d.classList.add('carousel-dot');
-        d.setAttribute('role', 'tab');
-        d.setAttribute('aria-selected', i === 0);
-        if (i === 0) d.classList.add('active');
-        d.addEventListener('click', () => goToSlide(i));
-        dotsContainer.appendChild(d);
+        const dot = document.createElement('div');
+        dot.classList.add('carousel-dot');
+        dot.setAttribute('role', 'tab');
+        dot.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+        if (i === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => goToSlide(i));
+        dotsContainer.appendChild(dot);
     });
 }
 
 function updateCarousel() {
+    if (!carousel) {
+        console.warn('carousel element not found');
+        return;
+    }
     carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
-    document.querySelectorAll('.carousel-dot').forEach((d, i) => {
-        d.classList.toggle('active', i === currentIndex);
-        d.setAttribute('aria-selected', i === currentIndex);
+    const dots = document.querySelectorAll('.carousel-dot');
+    dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentIndex);
+        dot.setAttribute('aria-selected', i === currentIndex ? 'true' : 'false');
     });
 }
 
-function goToSlide(i) {
-    currentIndex = (i + items.length) % items.length;
+function goToSlide(index) {
+    currentIndex = (index + items.length) % items.length;
     updateCarousel();
 }
 
-createDots();
-updateCarousel();
-prevBtn.addEventListener('click', () => goToSlide(currentIndex - 1));
-nextBtn.addEventListener('click', () => goToSlide(currentIndex + 1));
-let autoSlide = setInterval(() => goToSlide(currentIndex + 1), 5000);
-carousel.addEventListener('mouseenter', () => clearInterval(autoSlide));
-carousel.addEventListener('mouseleave', () => autoSlide = setInterval(() => goToSlide(currentIndex + 1), 5000));
+function initializeCarousel() {
+    if (!carousel || !items.length || !prevBtn || !nextBtn || !dotsContainer) {
+        console.warn('Carousel elements missing');
+        return;
+    }
+    createDots();
+    updateCarousel();
+    prevBtn.addEventListener('click', () => goToSlide(currentIndex - 1));
+    nextBtn.addEventListener('click', () => goToSlide(currentIndex + 1));
+    let autoSlide = setInterval(() => goToSlide(currentIndex + 1), 5000);
+    carousel.addEventListener('mouseenter', () => clearInterval(autoSlide));
+    carousel.addEventListener('mouseleave', () => {
+        autoSlide = setInterval(() => goToSlide(currentIndex + 1), 5000);
+    });
+}
 
-function escapeHTML(s) {
-    return s.replace(/[&<>"'\/]/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;'}[ch]));
+function escapeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"'\/]/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '/': '&#x2F;'
+    }[char]));
 }
 
 function simpleHash(str) {
-    let h = 0;
+    let hash = 0;
     for (let i = 0; i < str.length; i++) {
-        h = ((h << 5) - h) + str.charCodeAt(i);
-        h &= h;
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash &= hash;
     }
-    return Math.abs(h);
+    return Math.abs(hash);
 }
 
-const avatarColors = ['E63946', '457B9D', '2A9D8F', 'F4A261', '9B59B6', 'E76F51'];
+const avatarColors = [
+    'E63946', '457B9D', '2A9D8F', 'F4A261', '9B59B6', 'E76F51',
+    '2196F3', '4CAF50', 'FF9800', '6D4C41', '00BCD4', 'F06292'
+];
 
 function getAvatarUrl(username, email) {
     const seed = encodeURIComponent(username || 'unknown');
-    const color = avatarColors[email ? simpleHash(email) % avatarColors.length : 0];
+    const hashInput = (username || '') + (email || '');
+    const colorIndex = hashInput ? simpleHash(hashInput) % avatarColors.length : 0;
+    const color = avatarColors[colorIndex];
     return `https://api.dicebear.com/9.x/initials/svg?seed=${seed}&backgroundColor=${color}&fontSize=40`;
 }
 
 function showRegisterForm() {
-    document.getElementById('registerFormContainer').classList.remove('hidden');
-    document.getElementById('commentForm').classList.add('hidden');
+    const registerForm = document.getElementById('registerFormContainer');
+    const commentForm = document.getElementById('commentForm');
+    if (registerForm) registerForm.classList.remove('hidden');
+    if (commentForm) commentForm.classList.add('hidden');
 }
 
 function showCommentForm() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
-        document.getElementById('currentUsername').textContent = user.username;
-        document.getElementById('registerFormContainer').classList.add('hidden');
-        document.getElementById('commentForm').classList.remove('hidden');
+    let user = null;
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) user = JSON.parse(userData);
+    } catch (e) {
+        console.error('Failed to parse user from localStorage:', e);
+    }
+    const currentUsername = document.getElementById('currentUsername');
+    const registerForm = document.getElementById('registerFormContainer');
+    const commentForm = document.getElementById('commentForm');
+    if (user && user.id && user.username && currentUsername && registerForm && commentForm) {
+        currentUsername.textContent = user.username;
+        registerForm.classList.add('hidden');
+        commentForm.classList.remove('hidden');
     } else {
         showRegisterForm();
     }
 }
 
 function logout() {
-    localStorage.remove('user');
-    showRegisterForm();
+    try {
+        localStorage.removeItem('user');
+        showRegisterForm();
+    } catch (e) {
+        console.error('Logout failed:', e);
+        alert('Erro ao fazer logout. Tente novamente.');
+    }
 }
 
-document.getElementById('showRegisterForm')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    showRegisterForm();
-});
-
-document.getElementById('showCommentForm')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    showCommentForm();
-});
-
-document.getElementById('logout')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    logout();
-});
-
-document.getElementById('submitRegister')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('registerUsername').value.trim();
-    const email = document.getElementById('registerEmail').value.trim();
-    if (!username || !email) return alert('Preencha usuário e email.');
-    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) return alert('Usuário deve ter 3-20 caracteres e conter apenas letras, números ou sublinhados.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert('Email inválido.');
-    try {
-        const res = await fetch(`${API_BASE_URL}/api/users/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Erro ao registrar');
-        localStorage.setItem('user', JSON.stringify({ id: data.user.id, username: data.user.username }));
-        alert('Usuário registrado com sucesso!');
-        showCommentForm();
-    } catch (err) {
-        alert(`Erro: ${err.message}`);
-    }
-});
-
-function addCommentToDOM(c) {
+function addCommentToDOM(comment) {
     const list = document.getElementById('commentsList');
+    if (!list) {
+        console.warn('commentsList element not found');
+        return;
+    }
     const empty = list.querySelector('p.text-gray-400.text-center');
     if (empty) list.innerHTML = '';
+    if (!comment || !comment.message || !comment.createdAt) {
+        console.warn('Invalid comment data:', comment);
+        return;
+    }
     const card = document.createElement('div');
     card.className = 'comment-card';
     card.setAttribute('role', 'listitem');
-    const username = c.userId?.username || 'Anônimo';
-    const email = c.userId?.email || '';
+    const username = comment.userId?.username || comment.name || 'Anônimo';
+    const email = comment.userId?.email || comment.email || '';
+    const createdAt = comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('pt-BR') : 'Data desconhecida';
     card.innerHTML = `
         <img src="${getAvatarUrl(username, email)}" alt="Avatar de ${escapeHTML(username)}" class="comment-avatar">
         <div class="comment-content">
-            <p class="text-gray-400">${escapeHTML(c.message)}</p>
+            <p class="text-gray-400">${escapeHTML(comment.message)}</p>
             <p class="mt-2 font-bold text-white">- ${escapeHTML(username)}</p>
-            <p class="comment-date">${new Date(c.createdAt).toLocaleDateString('pt-BR')}</p>
+            <p class="comment-date">${createdAt}</p>
         </div>`;
     list.prepend(card);
 }
 
 async function loadComments(attempt = 1) {
     const list = document.getElementById('commentsList');
+    if (!list) {
+        console.warn('commentsList element not found');
+        return;
+    }
     list.innerHTML = '<p class="text-gray-400 text-center">Carregando comentários...</p>';
     try {
-        const res = await fetch(`${API_BASE_URL}/api/comments`, {
+        const response = await fetch(`${API_BASE_URL}/api/comments`, {
+            method: 'GET',
             headers: { 'Accept': 'application/json' }
         });
-        if (!res.ok) {
-            const errorData = await res.json().catch(() => ({}));
-            throw new Error(errorData.error || `Erro HTTP: ${res.status}`);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || errorData.details || `Erro HTTP: ${response.status}`);
         }
-        const comments = await res.json();
+        const comments = await response.json();
         list.innerHTML = '';
-        if (!comments.length) {
+        if (!comments || !Array.isArray(comments) || comments.length === 0) {
             list.innerHTML = '<p class="text-gray-400 text-center">Nenhum comentário ainda. Seja o primeiro!</p>';
             return;
         }
-        comments.reverse().forEach(addCommentToDOM);
+        comments.reverse().forEach(comment => {
+            if (comment && comment.message) addCommentToDOM(comment);
+        });
     } catch (err) {
-        console.error('Erro ao carregar comentários:', err);
+        console.error(`Attempt ${attempt} failed to load comments:`, err);
         if (attempt < 3) {
             setTimeout(() => loadComments(attempt + 1), attempt * 2000);
         } else {
@@ -377,44 +437,152 @@ async function loadComments(attempt = 1) {
     }
 }
 
-document.getElementById('commentForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) {
-        showRegisterForm();
-        return alert('Por favor, registre um usuário primeiro.');
-    }
-    const email = document.getElementById('commentEmail').value.trim();
-    const message = document.getElementById('commentMessage').value.trim();
-    if (!email || !message) return alert('Preencha email e mensagem.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert('Email inválido.');
-    try {
-        const res = await fetch(`${API_BASE_URL}/api/comments`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, message })
+function initializeEventListeners() {
+    const showRegisterLink = document.getElementById('showRegisterForm');
+    const showCommentLink = document.getElementById('showCommentForm');
+    const logoutLink = document.getElementById('logout');
+    const submitRegisterBtn = document.getElementById('submitRegister');
+    const commentForm = document.getElementById('commentForm');
+
+    if (showRegisterLink) {
+        showRegisterLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showRegisterForm();
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Erro ao enviar comentário');
-        alert('Comentário enviado!');
-        document.getElementById('commentForm').reset();
-    } catch (err) {
-        alert(`Erro: ${err.message}`);
     }
-});
+
+    if (showCommentLink) {
+        showCommentLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showCommentForm();
+        });
+    }
+
+    if (logoutLink) {
+        logoutLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+    }
+
+    if (submitRegisterBtn) {
+        submitRegisterBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const usernameInput = document.getElementById('registerUsername');
+            const emailInput = document.getElementById('registerEmail');
+            if (!usernameInput || !emailInput) {
+                console.warn('Register form inputs missing');
+                alert('Formulário incompleto.');
+                return;
+            }
+            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
+            if (!username || !email) {
+                alert('Preencha usuário e email.');
+                return;
+            }
+            if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+                alert('Usuário deve ter 3-20 caracteres e conter apenas letras, números ou sublinhados.');
+                return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert('Email inválido.');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Erro ao registrar');
+                }
+                localStorage.setItem('user', JSON.stringify({ id: data.user.id, username: data.user.username }));
+                alert('Usuário registrado com sucesso!');
+                showCommentForm();
+            } catch (err) {
+                console.error('Register failed:', err);
+                alert(`Erro: ${err.message}`);
+            }
+        });
+    }
+
+    if (commentForm) {
+        commentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let user = null;
+            try {
+                const userData = localStorage.getItem('user');
+                if (userData) user = JSON.parse(userData);
+            } catch (err) {
+                console.error('Failed to parse user from localStorage:', err);
+            }
+            if (!user || !user.id) {
+                showRegisterForm();
+                alert('Por favor, registre um usuário primeiro.');
+                return;
+            }
+            const emailInput = document.getElementById('commentEmail');
+            const messageInput = document.getElementById('commentMessage');
+            if (!emailInput || !messageInput) {
+                console.warn('Comment form inputs missing');
+                alert('Formulário incompleto.');
+                return;
+            }
+            const email = emailInput.value.trim();
+            const message = messageInput.value.trim();
+            if (!email || !message) {
+                alert('Preencha email e mensagem.');
+                return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert('Email inválido.');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: user.id, message })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Erro ao enviar comentário');
+                }
+                alert('Comentário enviado!');
+                commentForm.reset();
+            } catch (err) {
+                console.error('Comment submission failed:', err);
+                alert(`Erro: ${err.message}`);
+            }
+        });
+    }
+}
+
+function initializePing() {
+    setInterval(async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/ping`);
+            if (!response.ok) {
+                console.warn('Ping failed:', response.status);
+            }
+        } catch (e) {
+            console.error('Ping error:', e);
+        }
+    }, 300000);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing components');
+    initializeSocket();
+    initializeCarousel();
+    initializeEventListeners();
+    initializePing();
     showCommentForm();
     loadComments();
 });
-
-setInterval(async () => {
-    try {
-        await fetch(`${API_BASE_URL}/ping`);
-    } catch (e) {
-        console.error('Erro no ping:', e);
-    }
-}, 300000);
 </script>
 </body>
 </html>
