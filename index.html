@@ -53,6 +53,7 @@
     'https://connect.facebook.net/en_US/fbevents.js');fbq('init','3039782552846318');fbq('track','PageView');</script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=3039782552846318&ev=PageView&noscript=1"/></noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body class="font-sans">
 <header class="text-white py-6" style="background-color:#1f1f1f;">
@@ -182,6 +183,12 @@
     <div class="container mx-auto text-center">
         <p>© 2025 Fones de Ouvido Gamer Pro. Todos os direitos reservados.</p>
         <p class="mt-2 text-sm text-gray-400">Envio em até 24 h em dias úteis | Suporte dedicado</p>
+        <div class="mt-4">
+            <button id="showVisitsBtn" class="text-gray-400 hover:text-white text-sm" aria-label="Mostrar total de visitas">
+                <i class="fas fa-eye"></i>
+            </button>
+            <span id="visitCount" class="text-gray-400 ml-2" style="display: none;">Total de visitas: 0</span>
+        </div>
     </div>
 </footer>
 
@@ -690,6 +697,38 @@ document.addEventListener('DOMContentLoaded', () => {
     alert('Erro ao inicializar a página. Recarregue e tente novamente.');
   }
 });
+
+
+async function fetchVisitCount() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/visits/count`);
+        if (!response.ok) {
+            throw new Error('Erro ao buscar total de visitas');
+        }
+        const data = await response.json();
+        return data.totalVisits;
+    } catch (error) {
+        console.error('Erro ao buscar total de visitas:', error);
+        return 0;
+    }
+}
+
+function toggleVisitCount() {
+    const visitCountElement = document.getElementById('visitCount');
+    const showVisitsBtn = document.getElementById('showVisitsBtn');
+    if (visitCountElement.style.display === 'none') {
+        fetchVisitCount().then(count => {
+            visitCountElement.textContent = `Total de visitas: ${count}`;
+            visitCountElement.style.display = 'inline';
+            showVisitsBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+        });
+    } else {
+        visitCountElement.style.display = 'none';
+        showVisitsBtn.innerHTML = '<i class="fas fa-eye"></i>';
+    }
+}
+
+document.getElementById('showVisitsBtn').addEventListener('click', toggleVisitCount);
 
 </script>
 </body>
