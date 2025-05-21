@@ -35,6 +35,76 @@
 
     <script>
 
+const API_BASE_URL = 'https://backend-fone.onrender.com';
+let socket = null;
+
+function updateConnectionStatus(status, msg) {
+    const el = document.getElementById('connectionStatus');
+    if (!el) {
+        console.warn('connectionStatus element not found');
+        return;
+    }
+    if (status === 'connected') {
+        el.textContent = '';
+        el.className = 'text-center text-gray-400';
+    } else {
+        el.textContent = msg;
+        el.className = `text-center ${status === 'disconnected' ? 'text-red-600' : 'text-yellow-600'}`;
+    }
+    console.log(`Connection status: ${status} - ${msg}`);
+}
+
+function initializeSocket() {
+    try {
+        socket = io(API_BASE_URL, {
+            transports: ['websocket'],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            randomizationFactor: 0.5,
+            timeout: 10000
+        });
+        socket.on('connect', () => {
+            console.log('Socket connected');
+            updateConnectionStatus('connected', '');
+            loadComments();
+        });
+        socket.on('disconnect', () => {
+            console.warn('Socket disconnected');
+            updateConnectionStatus('disconnected', 'Conexão perdida. Tentando reconectar...');
+        });
+        socket.on('reconnect', () => {
+            console.log('Socket reconnected');
+            updateConnectionStatus('connected', '');
+            loadComments();
+        });
+        socket.on('reconnect_attempt', () => {
+            console.log('Socket reconnect attempt');
+            updateConnectionStatus('reconnecting', 'Tentando reconectar...');
+        });
+        socket.on('reconnect_failed', () => {
+            console.error('Socket reconnect failed');
+            updateConnectionStatus('disconnected', 'Não foi possível reconectar. Recarregue a página.');
+        });
+        socket.on('newComment', (comment) => {
+            if (comment && comment.message && comment.createdAt) {
+                console.log('New comment received:', comment);
+                addCommentToDOM(comment);
+            } else {
+                console.warn('Invalid comment received:', comment);
+            }
+        });
+        socket.on('connect_error', (err) => {
+            console.error('Socket connection error:', err.message);
+            updateConnectionStatus('disconnected', `Erro na conexão com o servidor: ${err.message}`);
+        });
+    } catch (e) {
+        console.error('Socket initialization failed:', e);
+        updateConnectionStatus('disconnected', 'Erro na inicialização da conexão.');
+    }
+}
+
 
 async function fetchVisitCount() {
     try {
