@@ -659,6 +659,38 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Erro ao inicializar a página. Recarregue e tente novamente.');
     }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM loaded, initializing components');
+  try {
+    console.log('Tailwind CSS loaded');
+    initializeSocket();
+    initializeCarousel();
+    initializeEventListeners();
+    initializePing();
+    showCommentForm();
+    loadComments();
+
+    // Registrar visita ao carregar a página
+    async function registerVisit() {
+      try {
+        await fetch(`${API_BASE_URL}/api/visits`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        console.log('Visita registrada');
+      } catch (error) {
+        console.error('Erro ao registrar visita:', error);
+      }
+    }
+    registerVisit();
+
+  } catch (e) {
+    console.error('Initialization failed:', e);
+    alert('Erro ao inicializar a página. Recarregue e tente novamente.');
+  }
+});
+
 </script>
 </body>
 </html>
