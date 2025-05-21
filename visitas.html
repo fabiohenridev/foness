@@ -1,21 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" href="TEC.png" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>visitas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.tailwindcss.com/3.4.3"></script>
     <style>
-
 *{
     color: white;
     background: black;
     font-size: 30px;
-  
 }
-
 .mt-4{
     display: flex;
     align-items: center;
@@ -26,17 +22,11 @@
     </style>
 </head>
 <body>
-    
-
     <div class="mt-4">
-        <button id="showVisitsBtn" class="text-gray-400 hover:text-white text-sm" aria-label="Mostrar total de visitas">
-            <i class="fas fa-eye"></i>
-        </button>
-        <span id="visitCount" class="text-gray-400 ml-2" style="display: none;">Total de visitas: 0</span>
+        <span id="visitCount" class="text-gray-400 ml-2">Total de visitas: 0</span>
     </div>
 
     <script>
-
 const API_BASE_URL = 'https://backend-fone.onrender.com';
 let socket = null;
 
@@ -107,7 +97,6 @@ function initializeSocket() {
     }
 }
 
-
 async function fetchVisitCount() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/visits/count`);
@@ -122,22 +111,13 @@ async function fetchVisitCount() {
     }
 }
 
-function toggleVisitCount() {
-    const visitCountElement = document.getElementById('visitCount');
-    const showVisitsBtn = document.getElementById('showVisitsBtn');
-    if (visitCountElement.style.display === 'none') {
-        fetchVisitCount().then(count => {
-            visitCountElement.textContent = `Total de visitas: ${count}`;
-            visitCountElement.style.display = 'inline';
-            showVisitsBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
-        });
-    } else {
-        visitCountElement.style.display = 'none';
-        showVisitsBtn.innerHTML = '<i class="fas fa-eye"></i>';
-    }
-}
-
-document.getElementById('showVisitsBtn').addEventListener('click', toggleVisitCount);
+document.addEventListener('DOMContentLoaded', () => {
+    initializeSocket();
+    fetchVisitCount().then(count => {
+        const visitCountElement = document.getElementById('visitCount');
+        visitCountElement.textContent = `Total de visitas: ${count}`;
+    });
+});
     </script>
 </body>
 </html>
