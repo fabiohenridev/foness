@@ -320,12 +320,13 @@ function updateCarousel() {
     });
     console.log(`Carousel updated to slide ${currentIndex}`);
 }
+
 function goToSlide(index) {
     currentIndex = index;
     if (currentIndex >= items.length) {
-        currentIndex = 0;
+        currentIndex = 0; // Volta ao início se ultrapassar o último item
     } else if (currentIndex < 0) {
-        currentIndex = items.length - 1;
+        currentIndex = items.length - 1; // Vai ao último item se for negativo
     }
     updateCarousel();
 }
@@ -338,14 +339,22 @@ function initializeCarousel() {
     console.log('Initializing carousel');
     createDots();
     updateCarousel();
-    prevBtn.addEventListener('click', () => {
-        console.log('Previous slide');
-        goToSlide(currentIndex - 1);
-    });
-    nextBtn.addEventListener('click', () => {
-        console.log('Next slide');
-        goToSlide(currentIndex + 1);
-    });
+    // Remove quaisquer eventos anteriores para evitar duplicação
+    prevBtn.removeEventListener('click', handlePrevClick);
+    nextBtn.removeEventListener('click', handleNextClick);
+    // Adiciona novos eventos
+    prevBtn.addEventListener('click', handlePrevClick);
+    nextBtn.addEventListener('click', handleNextClick);
+}
+
+function handlePrevClick() {
+    console.log('Previous slide');
+    goToSlide(currentIndex - 1);
+}
+
+function handleNextClick() {
+    console.log('Next slide');
+    goToSlide(currentIndex + 1);
 }
 
 function escapeHTML(str) {
