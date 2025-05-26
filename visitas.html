@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contador de Visitas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com/3.4.3"></script>
     <style>
         body {
@@ -72,22 +71,7 @@
             background: rgba(0, 0, 0, 0.5);
             transition: opacity 0.3s ease;
         }
-        .location-stats {
-            background: linear-gradient(135deg, #f0f8ff, #e6f0fa);
-            color: #1a1a1a;
-            padding: 1rem;
-            border-radius: 12px;
-            font-size: 1rem;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        #map {
-            height: 300px;
-            width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -138,6 +122,7 @@
         .modal-btn-cancel:hover {
             background: #e63939;
         }
+        /* Toast Notification */
         .toast {
             position: fixed;
             bottom: 20px;
@@ -177,9 +162,6 @@
             .modal-content {
                 padding: 1.5rem;
             }
-            #map {
-                height: 200px;
-            }
         }
     </style>
 </head>
@@ -190,8 +172,6 @@
         <button id="deleteVisitsBtn" class="delete-btn" aria-label="Excluir total de visitas">
             <i class="fas fa-trash"></i> Excluir Visitas
         </button>
-        <div id="locationStats" class="location-stats">Carregando estatísticas de localização...</div>
-        <div id="map"></div>
     </div>
 
     <!-- Modal de Confirmação -->
@@ -207,12 +187,10 @@
     </div>
 
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const API_BASE_URL = 'https://backend-fone.onrender.com';
         const AUTH_TOKEN = 'minha-chave-secreta'; // Substitua por variável de ambiente em produção
         let socket = null;
-        let map = null;
 
         // Atualiza o status de conexão
         function updateConnectionStatus(status, message) {
@@ -281,27 +259,9 @@
                     console.error('Erro de conexão Socket:', err.message);
                     updateConnectionStatus('disconnected', `Erro na conexão: ${err.message}`);
                 });
-
-                socket.on('newVisit', (data) => {
-                    document.getElementById('visitCount').textContent = `Total de visitas: ${data.totalVisits}`;
-                    fetchLocationStats();
-                });
             } catch (e) {
                 console.error('Falha na inicialização do Socket:', e);
                 updateConnectionStatus('disconnected', 'Erro na inicialização da conexão.');
-            }
-        }
-
-        // Registra uma visita
-        async function registerVisit() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/visits`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                if (!response.ok) throw new Error('Erro ao registrar visita');
-            } catch (error) {
-                console.error('Erro ao registrar visita:', error);
             }
         }
 
@@ -319,53 +279,6 @@
                 updateConnectionStatus('disconnected', 'Erro ao carregar visitas');
                 return 0;
             }
-        }
-
-        // Busca estatísticas de localização
-        async function fetchLocationStats() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/visits/locations`, {
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                if (!response.ok) throw new Error('Erro ao buscar estatísticas de localização');
-                const data = await response.json();
-                const statsElement = document.getElementById('locationStats');
-                statsElement.innerHTML = `
-                    <p><strong>Visitas por país:</strong> ${Object.entries(data.countByCountry)
-                        .map(([country, count]) => `${country}: ${count}`)
-                        .join(', ')}</p>
-                    <p><strong>Visitas por cidade:</strong> ${Object.entries(data.countByCity)
-                        .map(([city, count]) => `${city}: ${count}`)
-                        .join(', ')}</p>
-                `;
-                updateMap(data.visits);
-            } catch (error) {
-                console.error('Erro ao buscar estatísticas de localização:', error);
-                document.getElementById('locationStats').textContent = 'Erro ao carregar estatísticas';
-            }
-        }
-
-        // Inicializa o mapa com Leaflet
-        function initializeMap() {
-            map = L.map('map').setView([0, 0], 2);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map);
-        }
-
-        // Atualiza o mapa com marcadores
-        function updateMap(visits) {
-            if (!map) return;
-            map.eachLayer(layer => {
-                if (layer instanceof L.Marker) map.removeLayer(layer);
-            });
-            visits.forEach(visit => {
-                if (visit.location?.latitude && visit.location?.longitude) {
-                    L.marker([visit.location.latitude, visit.location.longitude])
-                        .addTo(map)
-                        .bindPopup(`Visita em ${visit.location.city || 'Desconhecida'}, ${visit.location.country || 'Desconhecido'} - ${new Date(visit.timestamp).toLocaleString()}`);
-                }
-            });
         }
 
         // Exclui todas as visitas
@@ -388,10 +301,6 @@
                 }
 
                 document.getElementById('visitCount').textContent = 'Total de visitas: 0';
-                document.getElementById('locationStats').textContent = 'Nenhuma visita registrada';
-                map.eachLayer(layer => {
-                    if (layer instanceof L.Marker) map.removeLayer(layer);
-                });
                 showToast('Visitas excluídas com sucesso!', 'success');
             } catch (error) {
                 console.error('Erro ao excluir visitas:', error);
@@ -424,6 +333,7 @@
                 console.log('Exclusão cancelada');
             });
 
+            // Fechar modal ao clicar fora
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     modal.style.display = 'none';
@@ -437,12 +347,9 @@
             try {
                 initializeSocket();
                 setupModal();
-                initializeMap();
-                registerVisit();
                 fetchVisitCount().then(count => {
                     document.getElementById('visitCount').textContent = `Total de visitas: ${count}`;
                 });
-                fetchLocationStats();
             } catch (e) {
                 console.error('Falha na inicialização:', e);
                 showToast('Erro ao inicializar a página. Recarregue e tente novamente.', 'error');
