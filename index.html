@@ -342,18 +342,6 @@ function initializeCarousel() {
         console.log('Next slide');
         goToSlide(currentIndex + 1);
     });
-    let autoSlide = setInterval(() => {
-        console.log('Auto sliding');
-        goToSlide(currentIndex + 1);
-    }, 5000);
-    carousel.addEventListener('mouseenter', () => {
-        console.log('Pausing auto slide');
-        clearInterval(autoSlide);
-    });
-    carousel.addEventListener('mouseleave', () => {
-        console.log('Resuming auto slide');
-        autoSlide = setInterval(() => goToSlide(currentIndex + 1), 5000);
-    });
 }
 
 function escapeHTML(str) {
