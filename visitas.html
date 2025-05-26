@@ -8,63 +8,159 @@
     <script src="https://cdn.tailwindcss.com/3.4.3"></script>
     <style>
         body {
-            background-color: rgb(38, 37, 37);
-            color: rgb(47, 255, 0);
-            font-family: sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
+            color: #00ff6b;
+            font-family: 'Inter', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             margin: 0;
+            overflow: auto;
         }
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1rem;
-            padding: 1rem;
+            gap: 1.5rem;
+            padding: 2rem;
             width: 100%;
             max-width: 600px;
         }
         .visit-count {
-            background-color: aliceblue;
-            color: rgb(0, 0, 0);
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-size: 1.5rem;
-            text-align: center;
+            background: linear-gradient(135deg, #f0f8ff, #e6f0fa);
+            color: #1a1a1a;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1.75rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+        .visit-count:hover {
+            transform: translateY(-4px);
         }
         .delete-btn {
-            background-color: aliceblue;
-            color: rgb(255, 0, 0);
+            background: linear-gradient(135deg, #ff4d4d, #e63939);
+            color: white;
             padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
+            border-radius: 12px;
             font-size: 1.25rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
         .delete-btn:hover {
-            background-color: rgb(220, 220, 220);
-            transform: scale(1.05);
+            background: linear-gradient(135deg, #ff6666, #ff3333);
+            transform: translateY(-2px);
         }
         .delete-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
         .status-message {
             font-size: 1rem;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
+        }
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #2c2c2c;
+            color: #00ff6b;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
             text-align: center;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        .modal-btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .modal-btn-confirm {
+            background: #00ff6b;
+            color: #1a1a1a;
+        }
+        .modal-btn-confirm:hover {
+            background: #00cc55;
+        }
+        .modal-btn-cancel {
+            background: #ff4d4d;
+            color: white;
+        }
+        .modal-btn-cancel:hover {
+            background: #e63939;
+        }
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            z-index: 1000;
+            animation: slideUp 0.5s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .toast-success {
+            background: #00ff6b;
+            color: #1a1a1a;
+        }
+        .toast-error {
+            background: #ff4d4d;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         @media (max-width: 640px) {
-            .visit-count, .delete-btn {
+            .visit-count {
+                font-size: 1.25rem;
+                padding: 0.75rem 1.5rem;
+            }
+            .delete-btn {
                 font-size: 1rem;
                 padding: 0.5rem 1rem;
+            }
+            .modal-content {
+                padding: 1.5rem;
             }
         }
     </style>
@@ -78,17 +174,28 @@
         </button>
     </div>
 
+    <!-- Modal de Confirmação -->
+    <div id="deleteModal" class="modal" role="dialog" aria-labelledby="modalTitle">
+        <div class="modal-content">
+            <h2 id="modalTitle" class="text-xl font-semibold">Confirmar Exclusão</h2>
+            <p class="mt-2">Deseja realmente excluir todas as visitas? Esta ação não pode ser desfeita.</p>
+            <div class="modal-buttons">
+                <button id="confirmDeleteBtn" class="modal-btn modal-btn-confirm">Confirmar</button>
+                <button id="cancelDeleteBtn" class="modal-btn modal-btn-cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     <script>
         const API_BASE_URL = 'https://backend-fone.onrender.com';
-        const AUTH_TOKEN = 'minha-chave-secreta'; // Idealmente, use variáveis de ambiente
+        const AUTH_TOKEN = 'minha-chave-secreta'; // Substitua por variável de ambiente em produção
         let socket = null;
 
-        // Atualiza o status de conexão no frontend
+        // Atualiza o status de conexão
         function updateConnectionStatus(status, message) {
             const statusElement = document.getElementById('connectionStatus');
             if (!statusElement) return;
-
             statusElement.textContent = message;
             statusElement.className = `status-message ${
                 status === 'connected' ? 'text-green-400' :
@@ -96,6 +203,18 @@
                 'text-yellow-600'
             }`;
             console.log(`Connection status: ${status} - ${message}`);
+        }
+
+        // Mostra notificação toast
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
         // Inicializa a conexão WebSocket
@@ -165,14 +284,9 @@
         // Exclui todas as visitas
         async function deleteVisits() {
             const deleteBtn = document.getElementById('deleteVisitsBtn');
-            if (!confirm('Tem certeza que deseja excluir todas as visitas? Esta ação não pode ser desfeita.')) {
-                console.log('Exclusão de visitas cancelada');
-                return;
-            }
-
             try {
                 deleteBtn.disabled = true;
-                deleteBtn.textContent = 'Excluindo...';
+                deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Excluindo...';
                 const response = await fetch(`${API_BASE_URL}/api/visits`, {
                     method: 'DELETE',
                     headers: {
@@ -187,15 +301,44 @@
                 }
 
                 document.getElementById('visitCount').textContent = 'Total de visitas: 0';
-                console.log('Visitas excluídas com sucesso');
-                alert('Visitas excluídas com sucesso!');
+                showToast('Visitas excluídas com sucesso!', 'success');
             } catch (error) {
                 console.error('Erro ao excluir visitas:', error);
-                alert(`Erro: ${error.message}`);
+                showToast(`Erro: ${error.message}`, 'error');
             } finally {
                 deleteBtn.disabled = false;
                 deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Excluir Visitas';
             }
+        }
+
+        // Gerencia o modal de confirmação
+        function setupModal() {
+            const modal = document.getElementById('deleteModal');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const cancelBtn = document.getElementById('cancelDeleteBtn');
+            const deleteBtn = document.getElementById('deleteVisitsBtn');
+
+            deleteBtn.addEventListener('click', () => {
+                modal.style.display = 'flex';
+                confirmBtn.focus();
+            });
+
+            confirmBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                deleteVisits();
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                console.log('Exclusão cancelada');
+            });
+
+            // Fechar modal ao clicar fora
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
         }
 
         // Inicializa a página
@@ -203,13 +346,13 @@
             console.log('DOM carregado, inicializando componentes');
             try {
                 initializeSocket();
+                setupModal();
                 fetchVisitCount().then(count => {
                     document.getElementById('visitCount').textContent = `Total de visitas: ${count}`;
                 });
-                document.getElementById('deleteVisitsBtn').addEventListener('click', deleteVisits);
             } catch (e) {
                 console.error('Falha na inicialização:', e);
-                alert('Erro ao inicializar a página. Recarregue e tente novamente.');
+                showToast('Erro ao inicializar a página. Recarregue e tente novamente.', 'error');
             }
         });
     </script>
