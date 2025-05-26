@@ -127,12 +127,10 @@
     </div>
     <p class="mt-6 text-lg text-red-600 font-bold text-center">Por apenas <span class="text-2xl">R$ 59,99</span> transforme sua experiência de jogo HOJE!</p>
     <div class="fixed bottom-0 left-0 w-full z-50">
-        <a href="https://wa.me/5584991562754?text=ol%C3%A1,%20estou%20interessado%20pelo%20fone%20e%20gostaria%20de%20comprar%20!%F0%9F%98%83%F0%9F%98%83"
-           class="bg-red-600 text-white px-8 py-4 text-center text-lg font-semibold shadow-lg block"
-           aria-label="Comprar pelo WhatsApp" target="_blank">
+        <button style="width: 100%;" onclick="trackPurchase()" class="bg-red-600 text-white px-8 py-4 text-center text-lg font-semibold shadow-lg block btn-red" aria-label="Comprar pelo WhatsApp">
             Comprar pelo WhatsApp
-        </a>
-    </div>    
+        </button>
+    </div>
 </div>
 </section>
 
@@ -180,20 +178,16 @@
         <div id="commentsList" class="mt-8" role="list"></div>
     </div>
     <div class="fixed bottom-0 left-0 w-full z-50">
-        <a href="https://wa.me/5584991562754?text=ol%C3%A1,%20estou%20interessado%20pelo%20fone%20e%20gostaria%20de%20comprar%20!%F0%9F%98%83%F0%9F%98%83"
-           class="bg-red-600 text-white px-8 py-4 text-center text-lg font-semibold shadow-lg block"
-           aria-label="Comprar pelo WhatsApp" target="_blank">
+        <button style="width: 100%;" onclick="trackPurchase()" class="bg-red-600 text-white px-8 py-4 text-center text-lg font-semibold shadow-lg block btn-red" aria-label="Comprar pelo WhatsApp">
             Comprar pelo WhatsApp
-        </a>
-    </div>    
+        </button>
+    </div>
 </section>
 <div class="fixed bottom-0 left-0 w-full z-50">
-    <a href="https://wa.me/5584991562754?text=ol%C3%A1,%20estou%20interessado%20pelo%20fone%20e%20gostaria%20de%20comprar%20!%F0%9F%98%83%F0%9F%98%83"
-       class="bg-red-600 text-white px-8 py-4 text-center text-lg font-semibold shadow-lg block"
-       aria-label="Comprar pelo WhatsApp" target="_blank">
+    <button style="width: 100%;" onclick="trackPurchase()" class="bg-red-600 text-white px-8 py-4 text-center text-lg font-semibold shadow-lg block btn-red" aria-label="Comprar pelo WhatsApp">
         Comprar pelo WhatsApp
-    </a>
-</div>    
+    </button>
+</div>
 
 <footer class="text-white py-6" style="background-color:#1f1f1f;">
     <div class="container mx-auto text-center">
@@ -212,6 +206,18 @@
 <script>
 const API_BASE_URL = 'https://backend-fone.onrender.com';
 let socket = null;
+
+function trackPurchase() {
+    console.log('Tracking Purchase event');
+    fbq('track', 'Purchase', {
+        value: 59.99, // Valor do produto conforme especificado na página
+        currency: 'BRL'
+    });
+    setTimeout(function() {
+        console.log('Redirecting to WhatsApp');
+        window.location.href = 'https://wa.me/5584991562754?text=ol%C3%A1,%20estou%20interessado%20pelo%20fone%20e%20gostaria%20de%20comprar%20!%F0%9F%98%83%F0%9F%98%83';
+    }, 300); // Atraso de 300ms para garantir o envio do evento
+}
 
 function updateConnectionStatus(status, msg) {
     const el = document.getElementById('connectionStatus');
