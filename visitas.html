@@ -24,8 +24,12 @@
 <body>
     <div class="mt-4">
         <span style="color: rgb(0, 0, 0); background-color: aliceblue; padding: 10px; font-family: sans-serif; border-radius: 10px;" id="visitCount" class="text-gray-400 ml-2">Total de visitas: 0</span>
+        <button id="deleteVisitsBtn" style="color: rgb(255, 0, 0); background-color: aliceblue; padding: 10px; margin-left: 10px; font-family: sans-serif; border-radius: 10px;" aria-label="Excluir total de visitas">
+            <i class="fas fa-trash"></i> Excluir Visitas
+        </button>
     </div>
 
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     <script>
 const API_BASE_URL = 'https://backend-fone.onrender.com';
 let socket = null;
@@ -60,7 +64,6 @@ function initializeSocket() {
         socket.on('connect', () => {
             console.log('Socket connected');
             updateConnectionStatus('connected', '');
-            loadComments();
         });
         socket.on('disconnect', () => {
             console.warn('Socket disconnected');
@@ -69,7 +72,6 @@ function initializeSocket() {
         socket.on('reconnect', () => {
             console.log('Socket reconnected');
             updateConnectionStatus('connected', '');
-            loadComments();
         });
         socket.on('reconnect_attempt', () => {
             console.log('Socket reconnect attempt');
@@ -78,14 +80,6 @@ function initializeSocket() {
         socket.on('reconnect_failed', () => {
             console.error('Socket reconnect failed');
             updateConnectionStatus('disconnected', 'Não foi possível reconectar. Recarregue a página.');
-        });
-        socket.on('newComment', (comment) => {
-            if (comment && comment.message && comment.createdAt) {
-                console.log('New comment received:', comment);
-                addCommentToDOM(comment);
-            } else {
-                console.warn('Invalid comment received:', comment);
-            }
         });
         socket.on('connect_error', (err) => {
             console.error('Socket connection error:', err.message);
@@ -111,12 +105,49 @@ async function fetchVisitCount() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    initializeSocket();
-    fetchVisitCount().then(count => {
+async function deleteVisits() {
+    if (!confirm('Tem certeza que deseja excluir todas as visitas? Esta ação não pode ser desfeita.')) {
+        console.log('Exclusão de visitas cancelada pelo usuário');
+        return;
+    }
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/visits`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer minha-chave-secreta' // Substitua por uma chave segura
+            }
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Erro ao excluir visitas');
+        }
         const visitCountElement = document.getElementById('visitCount');
-        visitCountElement.textContent = `Total de visitas: ${count}`;
-    });
+        visitCountElement.textContent = 'Total de visitas: 0';
+        console.log('Visitas excluídas com sucesso');
+        alert('Visitas excluídas com sucesso!');
+    } catch (error) {
+        console.error('Erro ao excluir visitas:', error);
+        alert(`Erro: ${error.message}`);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing components');
+    try {
+        initializeSocket();
+        fetchVisitCount().then(count => {
+            const visitCountElement = document.getElementById('visitCount');
+            visitCountElement.textContent = `Total de visitas: ${count}`;
+        });
+        const deleteVisitsBtn = document.getElementById('deleteVisitsBtn');
+        if (deleteVisitsBtn) {
+            deleteVisitsBtn.addEventListener('click', deleteVisits);
+        }
+    } catch (e) {
+        console.error('Initialization failed:', e);
+        alert('Erro ao inicializar a página. Recarregue e tente novamente.');
+    }
 });
     </script>
 </body>
