@@ -320,9 +320,13 @@ function updateCarousel() {
     });
     console.log(`Carousel updated to slide ${currentIndex}`);
 }
-
 function goToSlide(index) {
-    currentIndex = (index + items.length) % items.length;
+    currentIndex = index;
+    if (currentIndex >= items.length) {
+        currentIndex = 0;
+    } else if (currentIndex < 0) {
+        currentIndex = items.length - 1;
+    }
     updateCarousel();
 }
 
