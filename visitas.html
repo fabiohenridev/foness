@@ -1,154 +1,217 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>visitas</title>
+    <title>Contador de Visitas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.tailwindcss.com/3.4.3"></script>
     <style>
-*{
-    color: rgb(47, 255, 0);
-    background: rgb(38, 37, 37);
-    font-size: 30px;
-}
-.mt-4{
-    display: flex;
-    align-items: center;
-    height: 100vh;
-    width: 100vw;
-    justify-content: center;
-}
+        body {
+            background-color: rgb(38, 37, 37);
+            color: rgb(47, 255, 0);
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            width: 100%;
+            max-width: 600px;
+        }
+        .visit-count {
+            background-color: aliceblue;
+            color: rgb(0, 0, 0);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+        .delete-btn {
+            background-color: aliceblue;
+            color: rgb(255, 0, 0);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .delete-btn:hover {
+            background-color: rgb(220, 220, 220);
+            transform: scale(1.05);
+        }
+        .delete-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .status-message {
+            font-size: 1rem;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            text-align: center;
+        }
+        @media (max-width: 640px) {
+            .visit-count, .delete-btn {
+                font-size: 1rem;
+                padding: 0.5rem 1rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="mt-4">
-        <span style="color: rgb(0, 0, 0); background-color: aliceblue; padding: 10px; font-family: sans-serif; border-radius: 10px;" id="visitCount" class="text-gray-400 ml-2">Total de visitas: 0</span>
-        <button id="deleteVisitsBtn" style="color: rgb(255, 0, 0); background-color: aliceblue; padding: 10px; margin-left: 10px; font-family: sans-serif; border-radius: 10px;" aria-label="Excluir total de visitas">
+    <div class="container">
+        <span id="connectionStatus" class="status-message" role="status"></span>
+        <span id="visitCount" class="visit-count">Total de visitas: 0</span>
+        <button id="deleteVisitsBtn" class="delete-btn" aria-label="Excluir total de visitas">
             <i class="fas fa-trash"></i> Excluir Visitas
         </button>
     </div>
 
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     <script>
-const API_BASE_URL = 'https://backend-fone.onrender.com';
-let socket = null;
+        const API_BASE_URL = 'https://backend-fone.onrender.com';
+        const AUTH_TOKEN = 'minha-chave-secreta'; // Idealmente, use variáveis de ambiente
+        let socket = null;
 
-function updateConnectionStatus(status, msg) {
-    const el = document.getElementById('connectionStatus');
-    if (!el) {
-        console.warn('connectionStatus element not found');
-        return;
-    }
-    if (status === 'connected') {
-        el.textContent = '';
-        el.className = 'text-center text-gray-400';
-    } else {
-        el.textContent = msg;
-        el.className = `text-center ${status === 'disconnected' ? 'text-red-600' : 'text-yellow-600'}`;
-    }
-    console.log(`Connection status: ${status} - ${msg}`);
-}
+        // Atualiza o status de conexão no frontend
+        function updateConnectionStatus(status, message) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (!statusElement) return;
 
-function initializeSocket() {
-    try {
-        socket = io(API_BASE_URL, {
-            transports: ['websocket'],
-            reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            randomizationFactor: 0.5,
-            timeout: 10000
-        });
-        socket.on('connect', () => {
-            console.log('Socket connected');
-            updateConnectionStatus('connected', '');
-        });
-        socket.on('disconnect', () => {
-            console.warn('Socket disconnected');
-            updateConnectionStatus('disconnected', 'Conexão perdida. Tentando reconectar...');
-        });
-        socket.on('reconnect', () => {
-            console.log('Socket reconnected');
-            updateConnectionStatus('connected', '');
-        });
-        socket.on('reconnect_attempt', () => {
-            console.log('Socket reconnect attempt');
-            updateConnectionStatus('reconnecting', 'Tentando reconectar...');
-        });
-        socket.on('reconnect_failed', () => {
-            console.error('Socket reconnect failed');
-            updateConnectionStatus('disconnected', 'Não foi possível reconectar. Recarregue a página.');
-        });
-        socket.on('connect_error', (err) => {
-            console.error('Socket connection error:', err.message);
-            updateConnectionStatus('disconnected', `Erro na conexão com o servidor: ${err.message}`);
-        });
-    } catch (e) {
-        console.error('Socket initialization failed:', e);
-        updateConnectionStatus('disconnected', 'Erro na inicialização da conexão.');
-    }
-}
-
-async function fetchVisitCount() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/visits/count`);
-        if (!response.ok) {
-            throw new Error('Erro ao buscar total de visitas');
+            statusElement.textContent = message;
+            statusElement.className = `status-message ${
+                status === 'connected' ? 'text-green-400' :
+                status === 'disconnected' ? 'text-red-600' :
+                'text-yellow-600'
+            }`;
+            console.log(`Connection status: ${status} - ${message}`);
         }
-        const data = await response.json();
-        return data.totalVisits;
-    } catch (error) {
-        console.error('Erro ao buscar total de visitas:', error);
-        return 0;
-    }
-}
 
-async function deleteVisits() {
-    if (!confirm('Tem certeza que deseja excluir todas as visitas? Esta ação não pode ser desfeita.')) {
-        console.log('Exclusão de visitas cancelada pelo usuário');
-        return;
-    }
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/visits`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer minha-chave-secreta' // Substitua por uma chave segura
+        // Inicializa a conexão WebSocket
+        function initializeSocket() {
+            try {
+                socket = io(API_BASE_URL, {
+                    transports: ['websocket'],
+                    reconnection: true,
+                    reconnectionAttempts: 5,
+                    reconnectionDelay: 1000,
+                    reconnectionDelayMax: 5000,
+                    randomizationFactor: 0.5,
+                    timeout: 10000
+                });
+
+                socket.on('connect', () => {
+                    console.log('Socket conectado');
+                    updateConnectionStatus('connected', 'Conectado ao servidor');
+                });
+
+                socket.on('disconnect', () => {
+                    console.warn('Socket desconectado');
+                    updateConnectionStatus('disconnected', 'Conexão perdida. Tentando reconectar...');
+                });
+
+                socket.on('reconnect', () => {
+                    console.log('Socket reconectado');
+                    updateConnectionStatus('connected', 'Reconectado ao servidor');
+                });
+
+                socket.on('reconnect_attempt', () => {
+                    console.log('Tentativa de reconexão');
+                    updateConnectionStatus('reconnecting', 'Tentando reconectar...');
+                });
+
+                socket.on('reconnect_failed', () => {
+                    console.error('Falha na reconexão');
+                    updateConnectionStatus('disconnected', 'Não foi possível reconectar. Recarregue a página.');
+                });
+
+                socket.on('connect_error', (err) => {
+                    console.error('Erro de conexão Socket:', err.message);
+                    updateConnectionStatus('disconnected', `Erro na conexão: ${err.message}`);
+                });
+            } catch (e) {
+                console.error('Falha na inicialização do Socket:', e);
+                updateConnectionStatus('disconnected', 'Erro na inicialização da conexão.');
+            }
+        }
+
+        // Busca o total de visitas
+        async function fetchVisitCount() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/visits/count`, {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) throw new Error('Erro ao buscar total de visitas');
+                const data = await response.json();
+                return data.totalVisits;
+            } catch (error) {
+                console.error('Erro ao buscar total de visitas:', error);
+                updateConnectionStatus('disconnected', 'Erro ao carregar visitas');
+                return 0;
+            }
+        }
+
+        // Exclui todas as visitas
+        async function deleteVisits() {
+            const deleteBtn = document.getElementById('deleteVisitsBtn');
+            if (!confirm('Tem certeza que deseja excluir todas as visitas? Esta ação não pode ser desfeita.')) {
+                console.log('Exclusão de visitas cancelada');
+                return;
+            }
+
+            try {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = 'Excluindo...';
+                const response = await fetch(`${API_BASE_URL}/api/visits`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'Erro ao excluir visitas');
+                }
+
+                document.getElementById('visitCount').textContent = 'Total de visitas: 0';
+                console.log('Visitas excluídas com sucesso');
+                alert('Visitas excluídas com sucesso!');
+            } catch (error) {
+                console.error('Erro ao excluir visitas:', error);
+                alert(`Erro: ${error.message}`);
+            } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Excluir Visitas';
+            }
+        }
+
+        // Inicializa a página
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM carregado, inicializando componentes');
+            try {
+                initializeSocket();
+                fetchVisitCount().then(count => {
+                    document.getElementById('visitCount').textContent = `Total de visitas: ${count}`;
+                });
+                document.getElementById('deleteVisitsBtn').addEventListener('click', deleteVisits);
+            } catch (e) {
+                console.error('Falha na inicialização:', e);
+                alert('Erro ao inicializar a página. Recarregue e tente novamente.');
             }
         });
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || 'Erro ao excluir visitas');
-        }
-        const visitCountElement = document.getElementById('visitCount');
-        visitCountElement.textContent = 'Total de visitas: 0';
-        console.log('Visitas excluídas com sucesso');
-        alert('Visitas excluídas com sucesso!');
-    } catch (error) {
-        console.error('Erro ao excluir visitas:', error);
-        alert(`Erro: ${error.message}`);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing components');
-    try {
-        initializeSocket();
-        fetchVisitCount().then(count => {
-            const visitCountElement = document.getElementById('visitCount');
-            visitCountElement.textContent = `Total de visitas: ${count}`;
-        });
-        const deleteVisitsBtn = document.getElementById('deleteVisitsBtn');
-        if (deleteVisitsBtn) {
-            deleteVisitsBtn.addEventListener('click', deleteVisits);
-        }
-    } catch (e) {
-        console.error('Initialization failed:', e);
-        alert('Erro ao inicializar a página. Recarregue e tente novamente.');
-    }
-});
     </script>
 </body>
 </html>
