@@ -324,9 +324,9 @@ function updateCarousel() {
 function goToSlide(index) {
     currentIndex = index;
     if (currentIndex >= items.length) {
-        currentIndex = 0; // Volta ao início se ultrapassar o último item
+        currentIndex = 0;
     } else if (currentIndex < 0) {
-        currentIndex = items.length - 1; // Vai ao último item se for negativo
+        currentIndex = items.length - 1;
     }
     updateCarousel();
 }
@@ -339,10 +339,8 @@ function initializeCarousel() {
     console.log('Initializing carousel');
     createDots();
     updateCarousel();
-    // Remove quaisquer eventos anteriores para evitar duplicação
     prevBtn.removeEventListener('click', handlePrevClick);
     nextBtn.removeEventListener('click', handleNextClick);
-    // Adiciona novos eventos
     prevBtn.addEventListener('click', handlePrevClick);
     nextBtn.addEventListener('click', handleNextClick);
 }
@@ -359,13 +357,12 @@ function handleNextClick() {
 
 function escapeHTML(str) {
     if (!str) return '';
-    return str.replace(/[&<>"'\/]/g, char => ({
+    return str.replace(/[&<>"']/g, char => ({
         '&': '&amp;',
         '<': '&lt;',
         '>': '&gt;',
         '"': '&quot;',
-        "'": '&#39;',
-        '/': '&#x2F;'
+        "'": '&#39;'
     }[char]));
 }
 
@@ -595,62 +592,69 @@ function initializeEventListeners() {
     }
 
     if (commentForm) {
-        commentForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            let user = null;
-            try {
-                const userData = localStorage.getItem('user');
-                if (userData) user = JSON.parse(userData);
-            } catch (err) {
-                console.error('Failed to parse user from localStorage:', err);
-                user = null;
-            }
-            if (!user || !user.id) {
-                showRegisterForm();
-                alert('Por favor, registre um usuário primeiro.');
-                console.log('No user found for comment submission');
-                return;
-            }
-            const emailInput = document.getElementById('commentEmail');
-            const messageInput = document.getElementById('commentMessage');
-            if (!emailInput || !messageInput) {
-                console.warn('Comment form inputs missing');
-                alert('Formulário incompleto.');
-                return;
-            }
-            const email = emailInput.value.trim();
-            const message = messageInput.value.trim();
-            if (!email || !message) {
-                alert('Preencha email e mensagem.');
-                console.log('Empty email or message');
-                return;
-            }
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                alert('Email inválido.');
-                console.log('Invalid email format');
-                return;
-            }
-            try {
-                console.log(`Submitting comment by user ${user.username}`);
-                const response = await fetch(`${API_BASE_URL}/api/comments`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: user.id, message })
-                });
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.error || 'Erro ao enviar comentário');
-                }
-                alert('Comentário enviado!');
-                commentForm.reset();
-                console.log('Comment submitted successfully');
-            } catch (err) {
-                console.error('Comment submission failed:', err);
-                alert(`Erro: ${err.message}`);
-            }
-        });
+        commentForm.removeEventListener('submit', handleCommentSubmit);
+        commentForm.addEventListener('submit', handleCommentSubmit);
     }
-    console.log('Event listeners initialized');
+}
+
+function handleCommentSubmit(e) {
+    e.preventDefault();
+    const commentForm = document.getElementById('commentForm');
+    let user = null;
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) user = JSON.parse(userData);
+    } catch (err) {
+        console.error('Failed to parse user from localStorage:', err);
+        user = null;
+    }
+    if (!user || !user.id) {
+        showRegisterForm();
+        alert('Por favor, registre um usuário primeiro.');
+        console.log('No user found for comment submission');
+        return;
+    }
+    const emailInput = document.getElementById('commentEmail');
+    const messageInput = document.getElementById('commentMessage');
+    if (!emailInput || !messageInput) {
+        console.warn('Comment form inputs missing');
+        alert('Formulário incompleto.');
+        return;
+    }
+    const email = emailInput.value.trim();
+    const message = messageInput.value.trim();
+    if (!email || !message) {
+        alert('Preencha email e mensagem.');
+        console.log('Empty email or message');
+        return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('Email inválido.');
+        console.log('Invalid email format');
+        return;
+    }
+    const submitButton = document.getElementById('submitComment');
+    submitButton.disabled = true;
+    fetch(`${API_BASE_URL}/api/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, message })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!response.ok) {
+                throw new Error(data.error || 'Erro ao enviar comentário');
+            }
+            alert('Comentário enviado!');
+            commentForm.reset();
+            submitButton.disabled = false;
+            console.log('Comment submitted successfully');
+        })
+        .catch(err => {
+            console.error('Comment submission failed:', err);
+            alert(`Erro: ${err.message}`);
+            submitButton.disabled = false;
+        });
 }
 
 function initializePing() {
@@ -667,54 +671,6 @@ function initializePing() {
         }
     }, 300000);
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing components');
-    try {
-        console.log('Tailwind CSS loaded');
-        initializeSocket();
-        initializeCarousel();
-        initializeEventListeners();
-        initializePing();
-        showCommentForm();
-        loadComments();
-    } catch (e) {
-        console.error('Initialization failed:', e);
-        alert('Erro ao inicializar a página. Recarregue e tente novamente.');
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM loaded, initializing components');
-  try {
-    console.log('Tailwind CSS loaded');
-    initializeSocket();
-    initializeCarousel();
-    initializeEventListeners();
-    initializePing();
-    showCommentForm();
-    loadComments();
-
-    // Registrar visita ao carregar a página
-    async function registerVisit() {
-      try {
-        await fetch(`${API_BASE_URL}/api/visits`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
-        console.log('Visita registrada');
-      } catch (error) {
-        console.error('Erro ao registrar visita:', error);
-      }
-    }
-    registerVisit();
-
-  } catch (e) {
-    console.error('Initialization failed:', e);
-    alert('Erro ao inicializar a página. Recarregue e tente novamente.');
-  }
-});
-
 
 async function fetchVisitCount() {
     try {
@@ -745,8 +701,34 @@ function toggleVisitCount() {
     }
 }
 
-document.getElementById('showVisitsBtn').addEventListener('click', toggleVisitCount);
-
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing components');
+    try {
+        console.log('Tailwind CSS loaded');
+        initializeSocket();
+        initializeCarousel();
+        initializeEventListeners();
+        initializePing();
+        showCommentForm();
+        loadComments();
+        document.getElementById('showVisitsBtn').addEventListener('click', toggleVisitCount);
+        async function registerVisit() {
+            try {
+                await fetch(`${API_BASE_URL}/api/visits`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                console.log('Visita registrada');
+            } catch (error) {
+                console.error('Erro ao registrar visita:', error);
+            }
+        }
+        registerVisit();
+    } catch (e) {
+        console.error('Initialization failed:', e);
+        alert('Erro ao inicializar a página. Recarregue e tente novamente.');
+    }
+});
 </script>
 </body>
 </html>
